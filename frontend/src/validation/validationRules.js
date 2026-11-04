@@ -1,0 +1,60 @@
+export function validateName(name){
+    if(!name.trim()){
+        return "Name is required";
+    }
+    else if(name.trim().length<3){
+        return "Name must be at least 3 characters"
+    }
+    return "";
+}
+
+export function validateEmail(email){
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!email.trim()){
+        return "Email is required";
+    }
+    else if(!emailRegex.test(email)){
+        return "Please enter a valid email"
+    }
+    return "";
+}
+
+export function validateDescription(description){
+    if(!description.trim()){
+        return "Description required"
+    }
+    return "";
+}
+export function validateAmount(amount){
+    if(!amount){
+        return "Amount is required";
+    }
+    return "";
+}
+export function validateDate(date){
+    if(!date){
+        return "Date is required";
+    }
+    return ;
+}
+
+export function validateSplitType(type){
+    if(!type){
+        return "Split type is required";
+    }
+    return "";
+}
+
+export function validatePaidBy(payer){
+    if(!payer){
+        return "Payer is required";
+    }
+    return "";
+}
+
+export function validateParticipants(participants){
+    if(participants.length===0){
+        return "Enter atleast 1 participant";
+    }
+    return "";
+}
