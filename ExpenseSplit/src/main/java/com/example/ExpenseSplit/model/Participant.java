@@ -7,10 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "participants",
-        uniqueConstraints  = {
-        @UniqueConstraint(columnNames = {"expense_id, user_id"})
-})
+@Table(name = "participants")
 @Getter
 @Setter
 public class Participant extends BaseEntity{
@@ -27,7 +24,4 @@ public class Participant extends BaseEntity{
 
     @Column(nullable = false)
     private BigDecimal value;
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
 }

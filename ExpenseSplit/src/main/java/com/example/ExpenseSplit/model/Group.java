@@ -1,0 +1,31 @@
+package com.example.ExpenseSplit.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "groups")
+@Setter
+@Getter
+public class Group extends BaseEntity{
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String description;
+
+    @JoinColumn(nullable = false, name = "created_by")
+    @ManyToOne
+    private User createdBy;
+
+    @OneToMany(mappedBy = "group")
+    private List<GroupMember> groupMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "group")
+    private List<Expense> expenses = new ArrayList<>();
+}

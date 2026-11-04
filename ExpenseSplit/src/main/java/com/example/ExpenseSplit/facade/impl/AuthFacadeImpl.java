@@ -1,7 +1,9 @@
 package com.example.ExpenseSplit.facade.impl;
 
+import com.example.ExpenseSplit.dto.request.LoginRequest;
 import com.example.ExpenseSplit.dto.request.RegisterRequest;
 import com.example.ExpenseSplit.dto.response.AuthResponse;
+import com.example.ExpenseSplit.dto.response.BaseResponse;
 import com.example.ExpenseSplit.facade.api.AuthFacade;
 import com.example.ExpenseSplit.service.api.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -14,5 +16,15 @@ public class AuthFacadeImpl implements AuthFacade {
     @Override
     public AuthResponse register(RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @Override
+    public AuthResponse login(LoginRequest request) {
+        return authService.login(request);
+    }
+
+    @Override
+    public BaseResponse logout() {
+        return authService.logout();
     }
 }

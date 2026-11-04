@@ -58,14 +58,13 @@ export default function AddMember({onUserAdded}){
                 )}
                 <h3>Add Member</h3>
                 <form onSubmit={handleSubmit}>
-                    <div className="row">
+                    {/* <div className="row">
                         <div className="col-12 col-md-6">
                             <Input 
                                 id="name"
                                 placeholder="Enter name"
                                 type="text"
-                                label="Name" 
-                                style={{width:"400px"}}
+                                label="Name"
                                 required
                                 error={errors.name}
                                 value={registerData.name} 
@@ -77,7 +76,6 @@ export default function AddMember({onUserAdded}){
                                 id="email"
                                 placeholder="Enter email address"
                                 type="email"
-                                style={{width:"400px"}}
                                 required
                                 label="Email" 
                                 error={errors.email}
@@ -87,7 +85,7 @@ export default function AddMember({onUserAdded}){
                         </div>
                         
                         
-                    </div>
+                    </div> */}
                     <div>
                         <Button
                             className="btn btn-primary"

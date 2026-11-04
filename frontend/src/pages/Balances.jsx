@@ -15,10 +15,13 @@ export default function Balances(){
         fetchBalances();
     },[]);
     return(
-        <div className="container my-4">
-            <Card title={`Group Summary`}>
-                <Card className="w-25 bg-primary-subtle">
-                    <TotalExpenses />
+        <div className="container my-1">
+            <Card title={`Group Summary`} className="row">
+                <Card className="col-6 col-sm-4 col-md-2 bg-primary-subtle">
+                    {/* <div className=""> */}
+                        <TotalExpenses />
+                    {/* </div> */}
+                    
                 </Card>
             </Card>
 

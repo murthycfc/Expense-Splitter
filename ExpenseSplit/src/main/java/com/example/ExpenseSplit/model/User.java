@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -32,6 +34,7 @@ public class User extends BaseEntity{
     @Column(name = "logged_in", nullable = false)
     private boolean loggedIn = false;
 
-    @Column(name="last_logout_time",nullable = false)
+    @Column(name="last_logout_time")
     private LocalDateTime lastLogout;
+
 }

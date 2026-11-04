@@ -1,11 +1,32 @@
 // import { NavLink } from "react-router-dom";
 import {Menu, Users2, X } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import Button from "./Button";
+import { logout } from "../api/apis";
+import Modal from "react-bootstrap/Modal";
+
 export default function Navbar() {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [error, setError] = useState();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+
+    function handleLogout(){
+        setShowLogoutModal(true);
+    }
+    async function confirmLogout() {
+        try {
+            const data = await logout();
+            localStorage.clear();
+            console.log(data);
+            navigate("/login")
+        } catch (error) {
+            setError(error?.response?.data?.message);
+        }
+    }
     return (
         <nav className="navbar navbar-dark bg-dark py-3">
             <div className="container">
@@ -33,12 +54,12 @@ export default function Navbar() {
                         Balances
                     </NavLink>
 
-                    {/* <Button
-                        to="https://www.google.com"
+                    <Button
+                        onClick={handleLogout}
                         className="btn btn-sm btn-outline-light"
                     >
                         Logout
-                    </Button> */}
+                    </Button>
                 </div>
                 <Button
                     className="btn btn-dark d-sm-none"
@@ -70,17 +91,49 @@ export default function Navbar() {
                                 `nav-link ${isActive ? "text-white text-decoration-underline" : "text-white opacity-50"} `
                             }
                         >
-                            Members & Expenses
+                            Balances
                         </NavLink>
-                        {/* <Button
-                            to="https://www.google.com"
+                        <Button
+                            onClick={handleLogout}
                             className="btn btn-sm btn-outline-light"
                         >
                             Logout
-                        </Button> */}
+                        </Button>
                     </div>
                 )}
             </div>
+            <Modal
+                show={showLogoutModal}
+                onHide={()=>setShowLogoutModal(false)}
+                centered
+            >
+                <Modal.Header closeButton className="position-relative p-4">
+                    <Modal.Title className="position-absolute start-50">
+                        Logout <span className="text-danger mx-1 mb-1"><TriangleAlert /></span>
+                    </Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+                    <p className="text-center">Are you sure want to logout!</p>
+                </Modal.Body>
+
+                <Modal.Footer>
+                    <Button
+                        onClick={()=>setShowLogoutModal(false)}
+                        className="btn btn-secondary"
+                    >
+                        Close
+                    </Button>
+                    <Button
+                        onClick={()=>confirmLogout()}
+                        className="btn btn-danger"
+                    >
+                        Logout
+                    </Button>
+                </Modal.Footer>
+                
+            </Modal>
         </nav>
+
     );
 }

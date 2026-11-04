@@ -3,6 +3,7 @@ package com.example.ExpenseSplit.controller;
 import com.example.ExpenseSplit.dto.request.ExpenseRequest;
 import com.example.ExpenseSplit.dto.request.UserAddRequest;
 import com.example.ExpenseSplit.dto.response.*;
+import com.example.ExpenseSplit.facade.api.AuthFacade;
 import com.example.ExpenseSplit.facade.api.ExpenseFacade;
 import com.example.ExpenseSplit.facade.api.UserFacade;
 import jakarta.validation.Valid;
@@ -19,9 +20,10 @@ import java.util.List;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-public class BaseController {
+public class UserController {
     private final UserFacade userFacade;
     private final ExpenseFacade expenseFacade;
+    private final AuthFacade authFacade;
 
     @PostMapping("/addUser")
     public ResponseEntity<UserResponse> addUser(@Valid @RequestBody UserAddRequest request){
@@ -69,9 +71,14 @@ public class BaseController {
         return ResponseEntity.ok(expenseFacade.editExpense(expenseId, request));
     }
 
-    @GetMapping("getExpense/{expenseId}")
+    @GetMapping("/getExpense/{expenseId}")
     public ResponseEntity<ExpenseResponse> getExpense(@PathVariable String expenseId){
         return ResponseEntity.ok(expenseFacade.getExpense(expenseId));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<BaseResponse> logout(){
+        return ResponseEntity.ok(authFacade.logout());
     }
 }
 

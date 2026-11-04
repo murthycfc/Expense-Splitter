@@ -39,7 +39,7 @@ export default function Members({members, fetchUsers}){
                     </div>
                 )}
                 <div className="table-responsive border rounded">
-                    <table className="table align-middle table-hover">
+                    <table className="table align-middle table-hover mb-0">
                     <colgroup>
                         <col style={{width: "10%"}}/>
                         <col style={{width: "30%"}}/>

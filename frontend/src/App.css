@@ -1,7 +1,39 @@
+.login-page {
+    background: linear-gradient(
+        135deg,
+        #9ebeef,
+        #819cbb
+    );
+    min-height: 100vh;
+}
+
+body {
+    background: linear-gradient(
+        135deg,
+        #c8eab6,
+        #5a8ef6
+    );
+    min-height: 100vh;
+}
+
+
+
 .hover-scale {
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
 }
 .hover-scale:hover {
   transform: scale(1.15);
+}
+
+.btn-phonepe {
+    background-color: #5F259F;
+    border-color: #5F259F;
+    color: white;
+}
+
+.btn-phonepe:hover {
+    background-color: #4B1D80;
+    border-color: #4B1D80;
+    color: white;
 }

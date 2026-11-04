@@ -1,5 +1,6 @@
 package com.example.ExpenseSplit.controller;
 
+import com.example.ExpenseSplit.dto.request.LoginRequest;
 import com.example.ExpenseSplit.dto.request.RegisterRequest;
 import com.example.ExpenseSplit.dto.response.AuthResponse;
 import com.example.ExpenseSplit.facade.api.AuthFacade;
@@ -22,5 +23,9 @@ public class AuthController {
         return ResponseEntity.ok(authFacade.register(request));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
+        return ResponseEntity.ok(authFacade.login(request));
+    }
 
 }

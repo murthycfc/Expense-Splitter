@@ -24,7 +24,7 @@ export default function TotalExpenses(){
         )
     }
     return(
-        <div className="container">
+        <div className="">
             <p className="fw-semibold">Total Expenses</p>
             <p className="fw-bold text-primary">₹ {total}</p>
         </div>

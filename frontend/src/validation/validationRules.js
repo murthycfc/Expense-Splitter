@@ -19,6 +19,26 @@ export function validateEmail(email){
     return "";
 }
 
+export function validatePassword(password){
+    if(!password.trim()){
+        return "Password is required";
+    }
+    else if(password.trim().length<6){
+        return "Password must be atleast 6 characters"
+    }
+    return "";
+}
+
+export function validateConfirmPassword(password,confirmPassword){
+    if(!confirmPassword.trim()){
+        return "Confirm Password is required";
+    }
+    if(confirmPassword!==password){
+        return "Confirm Password must be equal to entered Password";
+    }
+    return "";
+}
+
 export function validateDescription(description){
     if(!description.trim()){
         return "Description required"
@@ -55,6 +75,18 @@ export function validatePaidBy(payer){
 export function validateParticipants(participants){
     if(participants.length===0){
         return "Enter atleast 1 participant";
+    }
+    return "";
+}
+
+export function validatePhoneNumber(phoneNumber){
+    if(!phoneNumber){
+        return "Phone number is required"
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/
+    if(!phoneRegex.test(phoneNumber)){
+        return "Please enter a valid 10-digit phone number"
     }
     return "";
 }

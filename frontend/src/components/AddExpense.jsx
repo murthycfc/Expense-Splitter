@@ -110,7 +110,7 @@ export default function AddExpense({onExpenseAdd}){
                                     type="text"
                                     required
                                     label="Description" 
-                                    error={errors.description}
+                                    error={errors?.description}
                                     value={expense.description} 
                                     onChange={handleChange}
                                 />
@@ -120,7 +120,7 @@ export default function AddExpense({onExpenseAdd}){
                                     id="amount"
                                     placeholder="0.00"
                                     type="number"
-                                    error={errors.amount}
+                                    error={errors?.amount}
                                     required
                                     label="Amount(₹)" 
                                     value={expense.amount} 
@@ -142,7 +142,7 @@ export default function AddExpense({onExpenseAdd}){
                                     label="Date"
                                     required
                                     value={expense.date}
-                                    error={errors.date}
+                                    error={errors?.date}
                                     onChange={(date)=>{
                                         setExpense(prev =>({
                                             ...prev,
@@ -176,7 +176,7 @@ export default function AddExpense({onExpenseAdd}){
                                             paidBy: ""
                                         }))
                                     }}
-                                    error={errors.paidBy}
+                                    error={errors?.paidBy}
                                     options={users.map(user =>({
                                         value: user.id,
                                         label: user.name
@@ -192,7 +192,7 @@ export default function AddExpense({onExpenseAdd}){
                                         name="status"
                                         label="Equal Split"
                                         value="EQUAL"
-                                        error={errors.splitType}
+                                        error={errors?.splitType}
                                         checked={expense.status==="EQUAL"}
                                         onChange={handleChange}
                                     />
@@ -206,9 +206,9 @@ export default function AddExpense({onExpenseAdd}){
                                         onChange={handleChange}
                                     />
                                 </div>
-                                {errors.status && (
+                                {errors?.status && (
                                     <div className="text-danger">
-                                        {errors.status}
+                                        {errors?.status}
                                     </div>
                                 )}
                             </div>
@@ -231,7 +231,7 @@ export default function AddExpense({onExpenseAdd}){
                                         }))
                                     }}
                                     placeholder="Select participants"
-                                    error={errors.participants}
+                                    error={errors?.participants}
                                     options={users.map(user=>({
                                         value: user.id,
                                         label: user.name
@@ -289,7 +289,7 @@ export default function AddExpense({onExpenseAdd}){
                                 )}
                             </div>
                         </div>
-                        {errors.server && (
+                        {errors?.server && (
                             <div className="alert alert-danger mt-2">
                                 {errors.server}
                             </div>

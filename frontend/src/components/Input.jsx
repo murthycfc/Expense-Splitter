@@ -1,4 +1,4 @@
-export default function Input({label,type,required,error,id, ...props}){
+export default function Input({label,type,required,error,id,eye, ...props}){
     const isRadio = type==="radio";
     if(isRadio){
         return (
@@ -25,12 +25,18 @@ export default function Input({label,type,required,error,id, ...props}){
                     )}
                 </label>
             )}
-            <input 
-                className="form-control"
-                type={type}
-                id={id}
-                {...props}
-            />
+            <div className="input-group">
+                <input 
+                    className="form-control"
+                    type={type}
+                    id={id}
+                    {...props}
+                />
+                {eye && (
+                    <span className="input-group-text bg-white p-0">{eye}</span>
+                )}
+            </div>
+            
             {error && (
                 <div className="text-danger small mt-1">
                     {error}
