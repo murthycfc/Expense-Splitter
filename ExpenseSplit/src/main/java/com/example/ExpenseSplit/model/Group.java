@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "groups")
+@Table(name = "expense_groups")
 @Setter
 @Getter
 public class Group extends BaseEntity{
@@ -16,14 +16,13 @@ public class Group extends BaseEntity{
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String description;
 
     @JoinColumn(nullable = false, name = "created_by")
     @ManyToOne
     private User createdBy;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> groupMembers = new ArrayList<>();
 
     @OneToMany(mappedBy = "group")

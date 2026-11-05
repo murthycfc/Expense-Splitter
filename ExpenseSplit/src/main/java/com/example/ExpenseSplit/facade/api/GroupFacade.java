@@ -1,0 +1,18 @@
+package com.example.ExpenseSplit.facade.api;
+
+import com.example.ExpenseSplit.dto.request.AddMemberRequest;
+import com.example.ExpenseSplit.dto.request.GroupCreationRequest;
+import com.example.ExpenseSplit.dto.request.GroupUpdateRequest;
+import com.example.ExpenseSplit.dto.response.*;
+import com.example.ExpenseSplit.model.Group;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface GroupFacade {
+    GroupCreationResponse createGroup(GroupCreationRequest request);
+    BaseResponse addMember(UUID groupId, AddMemberRequest request);
+    List<GroupResponse> getGroups();
+    List<GroupMemberResponse> getMembers(UUID groupId);
+    GroupUpdateResponse updateGroup(UUID groupId, GroupUpdateRequest request);
+}

@@ -57,7 +57,6 @@ public class UserController {
 
     @DeleteMapping("/deleteUser/{userId}")
     public ResponseEntity<BaseResponse> deleteUser(@PathVariable String userId){
-        log.info("aDAd");
         return ResponseEntity.ok(userFacade.deleteUser(userId));
     }
 

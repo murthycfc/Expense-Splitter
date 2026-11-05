@@ -24,4 +24,7 @@ public class Participant extends BaseEntity{
 
     @Column(nullable = false)
     private BigDecimal value;
+
+    @Column(nullable = false)
+    private boolean isActive;
 }

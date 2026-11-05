@@ -37,6 +37,6 @@ public class Expense extends BaseEntity{
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Participant> participants = new ArrayList<>();
 }

@@ -37,4 +37,10 @@ public class User extends BaseEntity{
     @Column(name="last_logout_time")
     private LocalDateTime lastLogout;
 
+    @OneToMany(mappedBy = "user")
+    private List<GroupMember> groupMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Participant> participants = new ArrayList<>();
+
 }
