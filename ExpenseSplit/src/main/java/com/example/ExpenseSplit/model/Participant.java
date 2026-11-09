@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "participants")
+@Table(name = "expense_participants")
 @Getter
 @Setter
 public class Participant extends BaseEntity{
@@ -25,6 +25,4 @@ public class Participant extends BaseEntity{
     @Column(nullable = false)
     private BigDecimal value;
 
-    @Column(nullable = false)
-    private boolean isActive;
 }

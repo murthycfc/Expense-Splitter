@@ -14,9 +14,11 @@ import java.util.UUID;
 @Setter
 public class ExpenseResponse {
     private UUID id;
+    private UUID groupId;
     private String description;
     private BigDecimal amount;
-    private String paidBy;
+    private UUID paidBy;
+    private String payerName;
     private LocalDate date;
     private Status status;
     private List<ParticipantResponse> participants = new ArrayList<>();

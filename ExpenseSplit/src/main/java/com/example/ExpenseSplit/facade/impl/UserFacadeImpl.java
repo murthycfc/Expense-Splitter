@@ -29,8 +29,8 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public List<UserResponse> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponse> getAllUsers(String email) {
+        return userService.getAllUsers(email);
     }
 
     @Override

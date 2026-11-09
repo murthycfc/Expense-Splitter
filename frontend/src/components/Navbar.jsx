@@ -12,6 +12,7 @@ export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [error, setError] = useState();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [token, setToken] = useState(localStorage.getItem("token"))
 
 
     function handleLogout(){
@@ -22,7 +23,9 @@ export default function Navbar() {
             const data = await logout();
             localStorage.clear();
             console.log(data);
+            setToken(null);
             navigate("/login")
+
         } catch (error) {
             setError(error?.response?.data?.message);
         }
@@ -54,12 +57,23 @@ export default function Navbar() {
                         Balances
                     </NavLink>
 
-                    <Button
+                    {token ? (
+                        <Button
                         onClick={handleLogout}
                         className="btn btn-sm btn-outline-light"
                     >
                         Logout
                     </Button>
+                    ) : (
+                        <Button
+                            onClick={()=>navigate("/login")}
+                            className="btn btn-sm btn-outline-light"
+                        >
+                            Login
+                        </Button>
+                        )
+                    }
+                    
                 </div>
                 <Button
                     className="btn btn-dark d-sm-none"
@@ -75,6 +89,7 @@ export default function Navbar() {
 
                 {menuOpen && (
                     <div className="d-flex d-sm-none flex-column align-items-center gap-2 mt-2 w-100">
+                        
                         <NavLink
                             to="/"
                             onClick={()=>setMenuOpen(prev =>!prev)}
@@ -93,12 +108,22 @@ export default function Navbar() {
                         >
                             Balances
                         </NavLink>
-                        <Button
-                            onClick={handleLogout}
-                            className="btn btn-sm btn-outline-light"
-                        >
+                        {token ? (
+                            <Button
+                                onClick={handleLogout}
+                                className="btn btn-sm btn-outline-light"
+                            >
                             Logout
-                        </Button>
+                            </Button>
+                        ) : (
+                                <Button
+                                    onClick={()=>navigate("/login")}
+                                    className="btn btn-sm btn-outline-light"
+                                >
+                                    Login
+                                </Button>
+                        )}
+                        
                     </div>
                 )}
             </div>

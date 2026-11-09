@@ -1,6 +1,7 @@
 package com.example.ExpenseSplit.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,8 +13,8 @@ import java.util.UUID;
 @Setter
 public class ParticipantRequest {
 
-    @NotBlank(message = "Participant is required")
-    private String id;
+    @NotNull(message = "Participant is required")
+    private UUID id;
 
     private BigDecimal percent;
 }

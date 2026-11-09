@@ -31,18 +31,9 @@ public class UserController {
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<UserResponse>> getAllUsers(){
-        return ResponseEntity.ok(userFacade.getAllUsers());
-    }
-
-    @PostMapping("/addExpense")
-    public ResponseEntity<BaseResponse> addExpense(@Valid @RequestBody ExpenseRequest request){
-        return ResponseEntity.ok(expenseFacade.addExpense(request));
-    }
-
-    @GetMapping("/getAllExpenses")
-    public ResponseEntity<List<ExpenseListResponse>> getAllExpenses(){
-        return ResponseEntity.ok(expenseFacade.getAllExpenses());
+    public ResponseEntity<List<UserResponse>> getAllUsers(
+            @RequestParam(required = false) String email){
+        return ResponseEntity.ok(userFacade.getAllUsers(email));
     }
 
     @GetMapping("/getMemberBalances")
@@ -60,20 +51,7 @@ public class UserController {
         return ResponseEntity.ok(userFacade.deleteUser(userId));
     }
 
-    @DeleteMapping("deleteExpense/{expenseId}")
-    public ResponseEntity<BaseResponse> deleteExpense(@PathVariable String expenseId){
-        return ResponseEntity.ok(expenseFacade.deleteExpense(expenseId));
-    }
 
-    @PutMapping("/editExpense/{expenseId}")
-    public ResponseEntity<BaseResponse> editExpense(@PathVariable String expenseId, @Valid @RequestBody ExpenseRequest request){
-        return ResponseEntity.ok(expenseFacade.editExpense(expenseId, request));
-    }
-
-    @GetMapping("/getExpense/{expenseId}")
-    public ResponseEntity<ExpenseResponse> getExpense(@PathVariable String expenseId){
-        return ResponseEntity.ok(expenseFacade.getExpense(expenseId));
-    }
 
     @PostMapping("/logout")
     public ResponseEntity<BaseResponse> logout(){

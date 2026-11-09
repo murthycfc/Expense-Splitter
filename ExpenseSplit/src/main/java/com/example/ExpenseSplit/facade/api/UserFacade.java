@@ -10,6 +10,6 @@ import java.util.UUID;
 
 public interface UserFacade {
     UserResponse addUser(UserAddRequest request);
-    List<UserResponse> getAllUsers();
+    List<UserResponse> getAllUsers(String email);
     BaseResponse deleteUser(String userId);
 }

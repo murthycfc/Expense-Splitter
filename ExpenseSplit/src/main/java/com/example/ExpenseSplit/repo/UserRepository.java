@@ -24,6 +24,11 @@ select * from users where is_deleted=false
     List<User> getAllUsers();
 
     @Query(value = """
+select * from users where lower(email) like lower(concat('%', :email, '%')) and is_deleted=false
+""", nativeQuery = true)
+    List<User> searchUsersByEmail(@Param("email") String email);
+
+    @Query(value = """
 select * from users where id=:id and is_deleted=false
 """, nativeQuery = true)
     Optional<User> findByUserId(@Param("id") String paidBy);

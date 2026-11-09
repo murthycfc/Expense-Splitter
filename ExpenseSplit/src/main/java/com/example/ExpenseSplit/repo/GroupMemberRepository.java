@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -24,10 +25,15 @@ select * from group_members where group_id=:groupId and is_deleted=false
     @Query(value = """
 select exists( select 1 from group_members where group_id=:groupId and user_id=:userId and is_deleted=false)
 """, nativeQuery = true)
-    Integer isUserMemberOfGroup(@Param("groupId") String groupId, @Param("userId") String userId);
+    Integer isMemberOfGroup(@Param("groupId") String groupId, @Param("userId") String userId);
+
+//    @Query(value = """
+//select * from group_members where group_id=:groupId and user_id=:userId and is_deleted=false
+//""", nativeQuery = true)
+//    GroupMember getMemberByGroupAndUser(@Param("groupId") String groupId, @Param("userId") String userId);
 
     @Query(value = """
-select * from group_members where group_id=:groupId and user_id=:userId and is_deleted=false
+select * from group_members where group_id=:groupId and user_id=:userId
 """, nativeQuery = true)
-    GroupMember getMemberByGroupAndUser(@Param("groupId") String groupId, @Param("userId") String userId);
+    Optional<GroupMember> findByGroupAndUser(@Param("groupId") String groupId, @Param("userId") String userId);
 }

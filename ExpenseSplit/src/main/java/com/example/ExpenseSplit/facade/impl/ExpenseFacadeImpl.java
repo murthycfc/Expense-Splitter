@@ -9,14 +9,19 @@ import com.example.ExpenseSplit.exception.BadRequestException;
 import com.example.ExpenseSplit.exception.ResourceNotFoundException;
 import com.example.ExpenseSplit.facade.api.ExpenseFacade;
 import com.example.ExpenseSplit.model.Expense;
+import com.example.ExpenseSplit.model.Group;
 import com.example.ExpenseSplit.repo.ExpenseRepository;
+import com.example.ExpenseSplit.repo.GroupRepository;
 import com.example.ExpenseSplit.service.api.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -24,15 +29,29 @@ import java.util.List;
 public class ExpenseFacadeImpl implements ExpenseFacade {
     private final ExpenseService expenseService;
     private final ExpenseRepository expenseRepository;
+    private final GroupRepository groupRepository;
 
     @Override
-    public BaseResponse addExpense(ExpenseRequest request) {
-        return expenseService.addExpense(request);
+    public BaseResponse addExpense(UUID groupId, ExpenseRequest request) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return expenseService.addExpense(group, request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
-    public List<ExpenseListResponse> getAllExpenses() {
-        return expenseService.getAllExpenses();
+    public Page<ExpenseListResponse> getExpenses(UUID groupId, Pageable pageable) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return expenseService.getExpenses(group, pageable);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -46,9 +65,9 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     }
 
     @Override
-    public BaseResponse deleteExpense(String expenseId) {
+    public BaseResponse deleteExpense(UUID expenseId) {
         try {
-            Expense expense = expenseRepository.findExpenseById(expenseId).orElseThrow(()->new ResourceNotFoundException("Expense not found to delete"));
+            Expense expense = expenseRepository.findExpenseById(expenseId.toString()).orElseThrow(()->new ResourceNotFoundException("Expense not found to delete"));
             return expenseService.deleteExpense(expense);
         }
         catch (ResourceNotFoundException e){
@@ -62,9 +81,9 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     }
 
     @Override
-    public BaseResponse editExpense(String expenseId, ExpenseRequest request) {
+    public BaseResponse editExpense(UUID expenseId, ExpenseRequest request) {
         try {
-            Expense expense = expenseRepository.findExpenseById(expenseId)
+            Expense expense = expenseRepository.findExpenseById(expenseId.toString())
                     .orElseThrow(()->new ResourceNotFoundException("Expense not found"));
             return expenseService.editExpense(expense, request);
         } catch (ResourceNotFoundException e) {
@@ -74,11 +93,11 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     }
 
     @Override
-    public ExpenseResponse getExpense(String expenseId) {
+    public ExpenseResponse getExpense(UUID expenseId) {
         try {
-            Expense expense = expenseRepository.findExpenseById(expenseId)
+            Expense expense = expenseRepository.findExpenseById(expenseId.toString())
                     .orElseThrow(()-> new ResourceNotFoundException("Expense not found to edit"));
-            return expenseService.getExpense(expense);
+            return expenseService.getExpense( expense);
         } catch (ResourceNotFoundException e) {
             log.error("An error occurred in getExpense {}", e.getMessage());
             throw e;

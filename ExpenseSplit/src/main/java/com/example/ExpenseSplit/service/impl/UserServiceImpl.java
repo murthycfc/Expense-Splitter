@@ -43,9 +43,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponse> getAllUsers() {
+    public List<UserResponse> getAllUsers(String email) {
         try {
-            List<User> users = userRepository.getAllUsers();
+            List<User> users;
+            if(email==null || email.isBlank()){
+                users = userRepository.getAllUsers();
+            }
+            else {
+                users = userRepository.searchUsersByEmail(email.trim());
+            }
             List<UserResponse> activeUsers = new ArrayList<>();
 
             for(User user : users){

@@ -4,6 +4,7 @@ import com.example.ExpenseSplit.dto.request.AddMemberRequest;
 import com.example.ExpenseSplit.dto.request.GroupCreationRequest;
 import com.example.ExpenseSplit.dto.request.GroupUpdateRequest;
 import com.example.ExpenseSplit.dto.response.*;
+import com.example.ExpenseSplit.exception.AccessDeniedException;
 import com.example.ExpenseSplit.exception.BadRequestException;
 import com.example.ExpenseSplit.exception.ResourceNotFoundException;
 import com.example.ExpenseSplit.mappers.GroupMemberMapper;
@@ -22,8 +23,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import
 import java.util.*;
 
 @Setter
@@ -66,8 +67,18 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional
     public BaseResponse addMember(Group group, AddMemberRequest request) {
         try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            log.info("current user {}", currentUser.getEmail());
+
+            GroupMember member = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
+                    .orElseThrow(()-> new BadRequestException("You are not member of this group. So can't add"));
+            log.info("member {}", member.getUser().getEmail());
+            if(member.isDeleted()){
+                throw new BadRequestException("You no longer member of this group. So can't add");
+            }
             List<UUID> userIds = request.getUserIds();
             Set<UUID> uniqueUserIds = new HashSet<>(userIds);
 
@@ -75,28 +86,40 @@ public class GroupServiceImpl implements GroupService {
                 throw new BadRequestException("Duplicate users are not allowed");
             }
 
-            List<User> users = new ArrayList<>();
+            List<GroupMember> newMembers = new ArrayList<>();
+            List<GroupMember> membersToSave = new ArrayList<>();
+
             for(UUID userId : userIds) {
                 User user = userRepository.findByUserId(userId.toString())
                         .orElseThrow(() -> new ResourceNotFoundException("User not found to add as member"));
+//                Integer exists = groupMemberRepository.alreadyExists(group.getId().toString(), userId.toString());
+//                if(exists==1){
+//                    log.error("A user with id {} already present in the group", userId);
+//                    throw new BadRequestException("A user already present in the group");
+//                }
+                Optional<GroupMember> existingGroupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), userId.toString());
+                if(existingGroupMember.isPresent()){
 
-                Integer exists = groupMemberRepository.alreadyExists(group.getId().toString(), userId.toString());
-                if(exists==1){
-                    log.error("A user with id {} already present in the group", userId);
-                    throw new BadRequestException("A user already present in the group");
+                    GroupMember groupMember = existingGroupMember.get();
+
+                    if(!groupMember.isDeleted()){
+                        throw new BadRequestException("User already member of this group");
+                    }
+
+                    groupMember.setDeleted(false);
+                    membersToSave.add(groupMember);
                 }
-                users.add(user);
+                else{
+                    //new member
+                    GroupMember groupMember = groupMemberMapper.toEntity(group, user);
+                    newMembers.add(groupMember);
+                    membersToSave.add(groupMember);
+                }
             }
 
-            List<GroupMember> newMembers = new ArrayList<>();
-            for(User user : users){
-                //creating group member
-                GroupMember groupMember = groupMemberMapper.toEntity(group, user);
-                newMembers.add(groupMember);
-            }
             group.getGroupMembers().addAll(newMembers);
-            groupMemberRepository.saveAll(newMembers);
-            log.info("New members added successfully");
+            groupMemberRepository.saveAll(membersToSave);
+            log.info("Members added successfully");
 
             BaseResponse response = new BaseResponse();
             response.setMessage("Users added successfully");
@@ -126,10 +149,37 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public GroupDetailsResponse getGroup(Group group) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            if(memberOfGroup==0){
+                throw new BadRequestException("You don't have access to fetch this group details");
+            }
+
+            GroupDetailsResponse response = new GroupDetailsResponse();
+            BeanUtils.copyProperties(group, response);
+
+            List<GroupMember> groupMembers = groupMemberRepository.findMembersByGroupId(group.getId().toString());
+            List<User> users = new ArrayList<>();
+
+            for(GroupMember groupMember : groupMembers){
+                User user = userRepository.findByUserId(groupMember.getUser().getId().toString())
+                        .orElseThrow(()-> new ResourceNotFoundException("A user not found in group"));
+                users.add(user);
+            }
+            response.setMembers(userMapper.toGroupMemberResponse(users));
+            return  response;
+        } catch (Exception e) {
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
     public List<GroupMemberResponse> getMembers(Group group) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
-            Integer memberOfGroup = groupMemberRepository.isUserMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
             if(memberOfGroup==0){
                 throw new BadRequestException("You don't have access to fetch this group members");
             }
@@ -157,7 +207,7 @@ public class GroupServiceImpl implements GroupService {
     public GroupUpdateResponse updateGroup(Group group, GroupUpdateRequest request) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
-            Integer memberOfGroup = groupMemberRepository.isUserMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
             if(memberOfGroup==0){
                 throw new BadRequestException("You don't have access to update this group");
             }
@@ -167,8 +217,7 @@ public class GroupServiceImpl implements GroupService {
             log.info("Group updated successfully");
 
             GroupUpdateResponse response = new GroupUpdateResponse();
-            response.setName(request.getName());
-            response.setDescription(request.getDescription());
+            BeanUtils.copyProperties(group, response);
             return response;
         }
 
@@ -186,15 +235,16 @@ public class GroupServiceImpl implements GroupService {
     public DeleteGroupMemberResponse deleteMember(Group group, User user){
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
-            if(group.getCreatedBy()!=currentUser){
-                throw new ResourceNotFoundException("You don't have access to delete users");
-            }
-            Integer memberOfGroup = groupMemberRepository.isUserMemberOfGroup(group.getId().toString(), user.getId().toString());
-            if(memberOfGroup==0){
-                throw new BadRequestException("This user not a member of this group");
+            if(!group.getCreatedBy().getId().equals(currentUser.getId())){
+                throw new AccessDeniedException("You don't have access to delete users");
             }
 
-            GroupMember groupMember = groupMemberRepository.getMemberByGroupAndUser(group.getId().toString(), user.getId().toString());
+            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), user.getId().toString())
+                    .orElseThrow(()->new ResourceNotFoundException("Member not found in the group"));
+            if(groupMember.isDeleted()){
+                throw new BadRequestException("Member already removed from the group");
+            }
+
             groupMember.setDeleted(true);
             groupMemberRepository.save(groupMember);
 
@@ -212,6 +262,32 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public DeleteGroupResponse deleteGroup(Group group) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            if(!group.getCreatedBy().getId().equals(currentUser.getId())){
+                throw new AccessDeniedException("You don't have access to delete group");
+            }
+            group.setDeleted(true);
+            groupRepository.save(group);
+
+            DeleteGroupResponse response = new DeleteGroupResponse();
+            response.setGroupId(group.getId());
+            response.setMessage("Group deleted successfully");
+            return response;
+
+        }
+        catch (AccessDeniedException e){
+            log.error("An error occurred in deleteGroup {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in deleteGroup {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
 }

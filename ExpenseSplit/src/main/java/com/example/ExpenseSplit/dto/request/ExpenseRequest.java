@@ -11,6 +11,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -25,9 +26,8 @@ public class ExpenseRequest {
     @NotNull(message = "Date is required")
     private LocalDate date;
 
-
-    @NotBlank(message = "Paid is required")
-    private String paidBy;
+    @NotNull(message = "Payer is required")
+    private UUID paidBy;
 
     @NotNull(message = "Status is required")
     private Status status;

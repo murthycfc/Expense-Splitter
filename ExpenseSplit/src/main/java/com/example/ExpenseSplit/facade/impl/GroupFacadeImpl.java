@@ -9,7 +9,9 @@ import com.example.ExpenseSplit.exception.BadRequestException;
 import com.example.ExpenseSplit.exception.ResourceNotFoundException;
 import com.example.ExpenseSplit.facade.api.GroupFacade;
 import com.example.ExpenseSplit.model.Group;
+import com.example.ExpenseSplit.model.User;
 import com.example.ExpenseSplit.repo.GroupRepository;
+import com.example.ExpenseSplit.repo.UserRepository;
 import com.example.ExpenseSplit.service.api.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class GroupFacadeImpl implements GroupFacade {
 
     private final GroupRepository groupRepository;
     private final GroupService groupService;
+    private final UserRepository userRepository;
 
     @Override
     public GroupCreationResponse createGroup(GroupCreationRequest request) {
@@ -47,6 +50,23 @@ public class GroupFacadeImpl implements GroupFacade {
         return groupService.getGroups();
     }
 
+    @Override
+    public GroupDetailsResponse getGroup(UUID groupId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return groupService.getGroup(group);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in getGroup {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in getGroup {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
     public List<GroupMemberResponse> getMembers(UUID groupId) {
         try {
             Group group = groupRepository.findByGroupId(groupId.toString())
@@ -59,7 +79,7 @@ public class GroupFacadeImpl implements GroupFacade {
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in getMembers {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new BadRequestException(e.getMessage());
         }
     }
 
@@ -77,6 +97,44 @@ public class GroupFacadeImpl implements GroupFacade {
         catch (Exception e) {
             log.error("An unexpected error occurred in updateGroup {}", e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public DeleteGroupMemberResponse deleteMember(UUID groupId, UUID userId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+
+            User user = userRepository.findByUserId(userId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+            return groupService.deleteMember(group, user);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in deleteMember {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in deleteMember {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public DeleteGroupResponse deleteGroup(UUID groupId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+
+            return groupService.deleteGroup(group);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in deleteGroup {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in deleteGroup {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
         }
     }
 }

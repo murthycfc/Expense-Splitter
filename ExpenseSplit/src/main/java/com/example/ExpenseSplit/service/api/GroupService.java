@@ -14,7 +14,9 @@ public interface GroupService {
     GroupCreationResponse createGroup(GroupCreationRequest request);
     BaseResponse addMember(Group group, AddMemberRequest request);
     List<GroupResponse> getGroups();
+    GroupDetailsResponse getGroup(Group group);
     List<GroupMemberResponse> getMembers(Group group);
     GroupUpdateResponse updateGroup(Group group, GroupUpdateRequest request);
     DeleteGroupMemberResponse deleteMember(Group group, User user);
+    DeleteGroupResponse deleteGroup(Group group);
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 @Setter
 public class ExpenseListResponse {
     private UUID id;
+    private UUID groupId;
     private String description;
     private BigDecimal amount;
     private String paidBy;

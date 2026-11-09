@@ -29,6 +29,10 @@ public class Expense extends BaseEntity{
     @JoinColumn(nullable = false)
     private User paidBy;
 
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private User createdBy;
+
     @Column(name = "split_status")
     @Enumerated(EnumType.STRING)
     private Status status;

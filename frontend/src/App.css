@@ -37,3 +37,46 @@ body {
     border-color: #4B1D80;
     color: white;
 }
+
+/* .groups-table {
+    margin-bottom: 0;
+} */
+
+.groups-table tbody tr:last-child td {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.mobile-description{
+    display: none;
+}
+
+.group-name-col{
+    width: 30%;
+}
+
+.group-description-col {
+    width: 50%;
+}
+
+.group-actions-col {
+    width: 20%;
+}
+
+@media (max-width: 576px) {
+    .description-column {
+        display: none;
+    }
+    .mobile-description {
+        display: block;
+        font-size: 0.7rem;
+        margin-top: 3px;
+    }
+    .group-name-col {
+        width: 75%;
+    }
+
+    .group-actions-col {
+        width: 25%;
+    }
+}

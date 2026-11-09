@@ -1,11 +1,13 @@
 import { createBrowserRouter, RouterProvider } from "react-router"
 import RootLayout from "./layout/RootLayout"
-import Members from "./pages/Home"
+import Home from "./pages/Home"
 import Balances from "./pages/Balances"
 import 'bootstrap/dist/css/bootstrap.min.css';
 import EditExpense from "./pages/EditExpense";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
+import Groups from "./pages/Groups";
+import ViewGroup from "./pages/ViewGroup";
 
 function App() {
   const router = createBrowserRouter([
@@ -15,7 +17,15 @@ function App() {
       children:[
         {
           index: true,
-          element: <Members />
+          element: <Groups />
+        },
+        {
+          path: "groups/:groupId/view",
+          element: <ViewGroup />
+        },
+        {
+          
+          element: <Home />
         },
         {
           path: "/balances" ,

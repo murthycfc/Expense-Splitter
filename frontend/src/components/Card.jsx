@@ -3,7 +3,7 @@ export default function Card({title, children, className=""}){
         <div className={`card shadow-sm border-0 rounded-3 ${className}`}>
             {title && (
                 <div className="card-header bg-white fw-bold py-2">
-                    {title}
+                    <h3>{title}</h3>
                 </div>
             )}
             <div className="card-body">
