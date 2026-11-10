@@ -68,7 +68,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public BaseResponse addMember(Group group, AddMemberRequest request) {
+    public List<GroupMemberResponse> addMember(Group group, AddMemberRequest request) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
             log.info("current user {}", currentUser.getEmail());
@@ -92,11 +92,6 @@ public class GroupServiceImpl implements GroupService {
             for(UUID userId : userIds) {
                 User user = userRepository.findByUserId(userId.toString())
                         .orElseThrow(() -> new ResourceNotFoundException("User not found to add as member"));
-//                Integer exists = groupMemberRepository.alreadyExists(group.getId().toString(), userId.toString());
-//                if(exists==1){
-//                    log.error("A user with id {} already present in the group", userId);
-//                    throw new BadRequestException("A user already present in the group");
-//                }
                 Optional<GroupMember> existingGroupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), userId.toString());
                 if(existingGroupMember.isPresent()){
 
@@ -118,12 +113,14 @@ public class GroupServiceImpl implements GroupService {
             }
 
             group.getGroupMembers().addAll(newMembers);
-            groupMemberRepository.saveAll(membersToSave);
+            List<GroupMember> savedMembers = groupMemberRepository.saveAll(membersToSave);
             log.info("Members added successfully");
 
-            BaseResponse response = new BaseResponse();
-            response.setMessage("Users added successfully");
-            return response;
+            List<User> users = new ArrayList<>();
+            for(GroupMember groupMember : savedMembers){
+                users.add(groupMember.getUser());
+            }
+            return userMapper.toGroupMemberResponse(users);
 
         }
         catch (ResourceNotFoundException | BadRequestException e){
@@ -286,6 +283,32 @@ public class GroupServiceImpl implements GroupService {
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in deleteGroup {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<UserResponse> getNonMembers(Group group) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            if(memberOfGroup==0){
+                throw new BadRequestException("You don't have access to fetch non this group");
+            }
+            List<User> users = userRepository.getAllUsers();
+            List<User> nonMembers = new ArrayList<>();
+            for(User user : users){
+                if(groupMemberRepository.isMemberOfGroup(group.getId().toString(), user.getId().toString())==1){
+                    continue;
+                }
+                else{
+                    nonMembers.add(user);
+                }
+            }
+            return userMapper.toUserResponse(nonMembers);
+        }
+        catch (Exception e) {
+            log.info("An error occurred");
             throw new BadRequestException(e.getMessage());
         }
     }

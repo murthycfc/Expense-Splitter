@@ -2,14 +2,22 @@ export default function Input({label,type,required,error,id,eye, ...props}){
     const isRadio = type==="radio";
     if(isRadio){
         return (
-            <div className="d-flex gap-2">
-                <input
-                    className="form-check-input"
-                    type={type}
-                    {...props}
-                />
-                <span className="form-check-label">{label}</span>
+            <div className="d-flex flex-column">
+                <div className="d-flex gap-2">
+                    <input
+                        className="form-check-input"
+                        type={type}
+                        {...props}
+                    />
+                    <span className="form-check-label">{label}</span>
+                </div>
+                {error && (
+                    <div className="text-danger small mt-1">
+                        {error}
+                    </div>
+                )}
             </div>
+            
         )
     }
     return (

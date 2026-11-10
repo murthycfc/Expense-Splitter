@@ -12,11 +12,12 @@ import java.util.UUID;
 
 public interface GroupFacade {
     GroupCreationResponse createGroup( GroupCreationRequest request);
-    BaseResponse addMember(UUID groupId, AddMemberRequest request);
+    List<GroupMemberResponse> addMember(UUID groupId, AddMemberRequest request);
     List<GroupResponse> getGroups();
     GroupDetailsResponse getGroup(UUID groupId);
     List<GroupMemberResponse> getMembers(UUID groupId);
     GroupUpdateResponse updateGroup(UUID groupId, GroupUpdateRequest request);
     DeleteGroupMemberResponse deleteMember(UUID groupId, UUID userId);
     DeleteGroupResponse deleteGroup(UUID groupId);
+    List<UserResponse> getNonMembers(UUID groupId);
 }

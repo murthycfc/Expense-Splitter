@@ -37,7 +37,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final GroupMemberRepository groupMemberRepository;
     @Override
     @Transactional
-    public BaseResponse addExpense(Group group, ExpenseRequest request) {
+    public ExpenseListResponse addExpense(Group group, ExpenseRequest request) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
@@ -138,11 +138,18 @@ public class ExpenseServiceImpl implements ExpenseService {
                 participants.add(participant);
             }
             expense.setParticipants(participants);
-            expenseRepository.save(expense);
+            Expense savedExpense = expenseRepository.save(expense);
             log.info("Expense created successfully");
 
-            BaseResponse response = new BaseResponse();
-            response.setMessage("Expense created successfully");
+            ExpenseListResponse response = new ExpenseListResponse();
+            BeanUtils.copyProperties(savedExpense, response);
+            response.setGroupId(savedExpense.getGroup().getId());
+            response.setPaidBy(savedExpense.getPaidBy().getName());
+            List<String> savedParticipants = new ArrayList<>();
+            for(Participant participant : savedExpense.getParticipants()){
+                savedParticipants.add(participant.getUser().getName());
+            }
+            response.setParticipants(savedParticipants);
             return response;
         }
         catch (ResourceNotFoundException | AccessDeniedException  e){

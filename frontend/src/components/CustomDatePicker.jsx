@@ -1,6 +1,6 @@
 import DatePicker from "react-datepicker";
 
-export default function CustomDatePicker({label, id,error, required, value, onChange}){
+export default function CustomDatePicker({label, id,error, required, value, ...props}){
     return(
         <div className="mb-3 d-flex flex-column">
             {label && (
@@ -17,10 +17,9 @@ export default function CustomDatePicker({label, id,error, required, value, onCh
             <DatePicker
                 selected={value ? new Date(value) : null}
                 id={id}
-                onChange={onChange}
                 dateFormat="yyyy-MM-dd"
                 className="form-control"
-                placeholderText="Select expense date"
+                {...props}
             />
             {error && (
                 <div className="text-danger small mt-1">

@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Component
 public interface ExpenseFacade {
-    BaseResponse addExpense(UUID groupId, ExpenseRequest request);
+    ExpenseListResponse addExpense(UUID groupId, ExpenseRequest request);
     Page<ExpenseListResponse> getExpenses(UUID groupId, Pageable pageable);
     List<MemberBalance> getMemberBalances();
     BigDecimal getTotalExpenses();

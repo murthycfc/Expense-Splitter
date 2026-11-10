@@ -80,3 +80,26 @@ body {
         width: 25%;
     }
 }
+
+
+.expense-date-col{
+    width: 10;
+}
+.expense-description-col{
+    width: 20;
+}
+.expense-amount-col{
+    width: 10;
+}
+.expense-payer-col{
+    width: 10;
+}
+.expense-participants-col{
+    width: 20;
+}
+.expense-spliyType-col{
+    width: 15;
+}
+.expense-action-col{
+    width: 15;
+}

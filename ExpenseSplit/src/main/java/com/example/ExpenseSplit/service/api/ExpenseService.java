@@ -15,11 +15,12 @@ import java.util.List;
 
 
 public interface ExpenseService {
-    BaseResponse addExpense(Group group, ExpenseRequest request);
+    ExpenseListResponse addExpense(Group group, ExpenseRequest request);
     Page<ExpenseListResponse> getExpenses(Group group, Pageable pageable);
     List<MemberBalance> getMemberBalances();
     BigDecimal getTotalExpenses();
     BaseResponse deleteExpense(Expense expense);
     BaseResponse editExpense( Expense expense, ExpenseRequest request);
     ExpenseResponse getExpense(Expense expense);
+
 }

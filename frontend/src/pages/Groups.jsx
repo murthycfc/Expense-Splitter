@@ -14,6 +14,7 @@ export default function Groups(){
     const [deletingGroup, setDeletingGroup] = useState();
     const [updatingGroupId, setupdatingGroupId] = useState(null);
     
+    
     const [group, setGroup] = useState({
         name:"",
         description: ""
@@ -225,7 +226,7 @@ export default function Groups(){
                                     placeholder="Enter group name"
                                     type="text"
                                     required
-                                    label="Label"
+                                    label="Name"
                                     error={errors.name}
                                     value={group.name}
                                     onChange={handleChange}

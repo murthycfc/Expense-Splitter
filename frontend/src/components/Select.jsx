@@ -15,7 +15,7 @@ export default function Select({label,options=[], value, onChange,placeholder="S
     return(
         <div className="mb-3">
             {label && (
-                <label className="form-label">
+                <label className="form-label fw-semibold">
                     {label}
                     {required && (
                         <span className="text-danger ms-1">*</span>

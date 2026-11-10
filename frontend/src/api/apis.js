@@ -12,6 +12,8 @@ export async function getAllUsers() {
     return response.data;
 }
 
+
+
 export async function loadGroups() {
     const response = await apiClient.get(`/api/groups/getGroups`);
     return response.data;
@@ -42,8 +44,26 @@ export async function getExpenses(groupId, page=0, size=10){
     return response.data;
 }
 
-export async function addExpense(request) {
-    const response = await apiClient.post(`/api/addExpense`, request)
+export async function getMembers(groupId) {
+    
+    const response = await apiClient.get(`/api/groups/${groupId}/getMembers`);
+    console.log(response.data);
+    return response.data;
+}
+
+export async function addExpense(groupId,request) {
+    const response = await apiClient.post(`/api/groups/${groupId}/addExpense`, request)
+    return response.data;
+}
+
+export async function getNonMembers(groupId) {
+    const response = await apiClient.get(`/api/groups/${groupId}/getNonMembers`);
+    return response.data;
+}
+
+export async function addMembers(groupId, request) {
+    const response = await apiClient.post(`/api/groups/${groupId}/addMember`, {userIds:request});
+    console.log("api")
     return response.data;
 }
 

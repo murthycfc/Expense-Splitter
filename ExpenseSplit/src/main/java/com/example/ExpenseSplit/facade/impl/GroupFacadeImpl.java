@@ -35,7 +35,7 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public BaseResponse addMember(UUID groupId, AddMemberRequest request) {
+    public List<GroupMemberResponse> addMember(UUID groupId, AddMemberRequest request) {
         try {
             Group group = groupRepository.findByGroupId(groupId.toString())
                     .orElseThrow(()-> new ResourceNotFoundException("Group not found to add members"));
@@ -134,6 +134,23 @@ public class GroupFacadeImpl implements GroupFacade {
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in deleteGroup {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<UserResponse> getNonMembers(UUID groupId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return groupService.getNonMembers(group);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in getNonMembers {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in getNonMembers {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
     }

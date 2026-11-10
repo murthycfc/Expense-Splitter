@@ -281,7 +281,6 @@ export default function AddExpense({onExpenseAdd}){
                                                     <td className="fw-semibold px-3">Total</td>
                                                     <td className="me-4 fw-bold">{Object.values(percentages).reduce((total, currVal) => total+ (Number(currVal) || 0),0)}</td>
                                                 </tr>
-                                                
                                             </tfoot>
 
                                         </table>

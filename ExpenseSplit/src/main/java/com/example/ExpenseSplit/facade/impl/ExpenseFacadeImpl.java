@@ -32,7 +32,7 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     private final GroupRepository groupRepository;
 
     @Override
-    public BaseResponse addExpense(UUID groupId, ExpenseRequest request) {
+    public ExpenseListResponse addExpense(UUID groupId, ExpenseRequest request) {
         try {
             Group group = groupRepository.findByGroupId(groupId.toString())
                     .orElseThrow(()-> new ResourceNotFoundException("Group not found"));

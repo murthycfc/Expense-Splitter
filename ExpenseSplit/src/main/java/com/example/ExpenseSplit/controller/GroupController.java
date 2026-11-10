@@ -10,6 +10,7 @@ import com.example.ExpenseSplit.facade.api.GroupFacade;
 import com.example.ExpenseSplit.model.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor
+@Slf4j
 public class GroupController {
     private final GroupFacade groupFacade;
     private final ExpenseFacade expenseFacade;
@@ -32,8 +34,13 @@ public class GroupController {
         return ResponseEntity.ok(groupFacade.createGroup(request));
     }
 
+    @GetMapping("{groupId}/getNonMembers")
+    public ResponseEntity<List<UserResponse>> getNonMembers(@PathVariable UUID groupId){
+        return ResponseEntity.ok(groupFacade.getNonMembers(groupId));
+    }
+
     @PostMapping("/{groupId}/addMember")
-    public ResponseEntity<BaseResponse> addMember(@PathVariable UUID groupId,
+    public ResponseEntity<List<GroupMemberResponse>> addMember(@PathVariable UUID groupId,
                                                   @Valid @RequestBody AddMemberRequest request){
         return ResponseEntity.ok(groupFacade.addMember(groupId, request));
     }
@@ -49,6 +56,7 @@ public class GroupController {
     }
     @GetMapping("/{groupId}/getMembers")
     public ResponseEntity<List<GroupMemberResponse>> getMembers(@PathVariable("groupId") UUID groupId){
+        log.info("getMembers");
         return ResponseEntity.ok(groupFacade.getMembers(groupId));
     }
 
@@ -63,7 +71,7 @@ public class GroupController {
     }
 
     @PostMapping("{groupId}/addExpense")
-    public ResponseEntity<BaseResponse> addExpense(@PathVariable UUID groupId, @Valid @RequestBody ExpenseRequest request){
+    public ResponseEntity<ExpenseListResponse> addExpense(@PathVariable UUID groupId, @Valid @RequestBody ExpenseRequest request){
         return ResponseEntity.ok(expenseFacade.addExpense(groupId, request));
     }
 

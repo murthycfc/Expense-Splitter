@@ -1,11 +1,12 @@
 // import { NavLink } from "react-router-dom";
-import {Menu, Users2, X } from "lucide-react";
+import {LogOut, Menu, Users2, X } from "lucide-react";
 import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import Button from "./Button";
 import { logout } from "../api/apis";
 import Modal from "react-bootstrap/Modal";
+import { FaUsers } from "react-icons/fa";
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -38,7 +39,8 @@ export default function Navbar() {
                     onClick={()=>navigate("/")} 
                     style={{cursor: "pointer"}}
                 >
-                    <Users2 className="text-primary" size={24}/>
+                    <FaUsers className="text-primary" size={40}/>
+                    
                     <h5 className="text-white mb-0">Expense Splitter</h5>
                 </div>
 
@@ -62,7 +64,8 @@ export default function Navbar() {
                         onClick={handleLogout}
                         className="btn btn-sm btn-outline-light"
                     >
-                        Logout
+                        <LogOut />
+                        <span className="ms-2">Logout</span>
                     </Button>
                     ) : (
                         <Button
@@ -113,7 +116,8 @@ export default function Navbar() {
                                 onClick={handleLogout}
                                 className="btn btn-sm btn-outline-light"
                             >
-                            Logout
+                                <LogOut /> Logout
+                            
                             </Button>
                         ) : (
                                 <Button
