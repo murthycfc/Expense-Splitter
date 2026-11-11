@@ -90,3 +90,10 @@ export function validatePhoneNumber(phoneNumber){
     }
     return "";
 }
+
+export function validateGroupName(groupName){
+    if(!groupName.trim()){
+        return "Group name is required";
+    }
+    return "";
+}

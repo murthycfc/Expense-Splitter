@@ -11,4 +11,5 @@ public class ParticipantResponse {
     private String userId;
     private String name;
     private BigDecimal percent;
+    private BigDecimal value;
 }

@@ -12,4 +12,5 @@ public interface UserFacade {
     UserResponse addUser(UserAddRequest request);
     List<UserResponse> getAllUsers(String email);
     BaseResponse deleteUser(String userId);
+    UserResponse getProfile();
 }

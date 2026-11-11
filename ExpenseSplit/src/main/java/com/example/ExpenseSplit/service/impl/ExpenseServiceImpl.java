@@ -228,6 +228,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 participantResponse.setUserId(participant.getUser().getId().toString());
                 participantResponse.setName(participant.getUser().getName());
                 participantResponse.setPercent(participant.getPercent());
+                participantResponse.setValue(participant.getValue());
                 participantResponses.add(participantResponse);
             }
             response.setParticipants(participantResponses);
@@ -256,17 +257,20 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public BaseResponse editExpense( Expense expense, ExpenseRequest request) {
+    public ExpenseResponse editExpense( Expense expense, ExpenseRequest request) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
             Group group = expense.getGroup();
+//            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
+//                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't edit expense"));
+//
+//            if(groupMember.isDeleted()){
+//                throw new AccessDeniedException("You are no longer member in this group. So can't edit expense");
+//            }
 
-            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
-                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't edit expense"));
-
-            if(groupMember.isDeleted()){
-                throw new AccessDeniedException("You are no longer member in this group. So can't edit expense");
+            if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
+                throw new AccessDeniedException("You don't have access to edit this expense");
             }
 
             User paidByUser = userRepository.findByUserId(request.getPaidBy().toString()).orElseThrow(()->
@@ -379,9 +383,22 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
             }
 
-            expenseRepository.save(expense);
-            BaseResponse response = new BaseResponse();
-            response.setMessage("Expense updated successfully");
+            Expense savedExpense = expenseRepository.save(expense);
+            ExpenseResponse response = new ExpenseResponse();
+            BeanUtils.copyProperties(savedExpense, response);
+            response.setGroupId(expense.getGroup().getId());
+            response.setPaidBy(expense.getPaidBy().getId());
+            response.setPayerName(expense.getPaidBy().getName());
+            List<ParticipantResponse> savedParticipants = new ArrayList<>();
+            for(Participant participant : savedExpense.getParticipants()){
+                ParticipantResponse participantResponse = new ParticipantResponse();
+                participantResponse.setUserId(participant.getUser().getId().toString());
+                participantResponse.setName(participant.getUser().getName());
+                participantResponse.setPercent(participant.getPercent());
+                participantResponse.setValue(participant.getValue());
+                savedParticipants.add(participantResponse);
+            }
+            response.setParticipants(savedParticipants);
             return response;
         }
         catch (ResourceNotFoundException | AccessDeniedException| BadRequestException e){
@@ -399,14 +416,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
-            Group group = expense.getGroup();
+//            Group group = expense.getGroup();
 
-            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
-                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't delete expense"));
+//            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
+//                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't delete expense"));
+//
+//            if(groupMember.isDeleted()){
+//                throw new AccessDeniedException("You are no longer member in this group. So can't delete expense");
+//            }
 
-            if(groupMember.isDeleted()){
-                throw new AccessDeniedException("You are no longer member in this group. So can't delete expense");
+            if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
+                throw new AccessDeniedException("You don't have access to delete this expense");
             }
+
 
             expense.setDeleted(true);
             List<Participant> participants = participantRepository.getParticipantsByExpenseId(expense.getId().toString());

@@ -51,7 +51,10 @@ public class UserController {
         return ResponseEntity.ok(userFacade.deleteUser(userId));
     }
 
-
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponse> getProfile(){
+        return ResponseEntity.ok(userFacade.getProfile());
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<BaseResponse> logout(){

@@ -21,6 +21,6 @@ public interface ExpenseFacade {
     List<MemberBalance> getMemberBalances();
     BigDecimal getTotalExpenses();
     BaseResponse deleteExpense(UUID expenseId);
-    BaseResponse editExpense( UUID expenseId, ExpenseRequest request);
+    ExpenseResponse editExpense( UUID expenseId, ExpenseRequest request);
     ExpenseResponse getExpense(UUID expenseId);
 }

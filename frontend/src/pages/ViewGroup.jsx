@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import Card from "../components/Card";
 import { useNavigate, useParams } from "react-router";
 import { addExpense, addMembers, getExpenses, getGroup, getMembers, getNonMembers } from "../api/apis";
-import { Calendar, UserCheck, UserPlus, UsersCollaboration } from "lucide-react";
+import { ArrowRight, Calendar, UserCheck, UserPlus, UsersCollaboration } from "lucide-react";
 import Button from "../components/Button";
 import DateFormatter from "../utils/DateFormatter";
 import Input from "../components/Input";
@@ -98,11 +98,7 @@ export default function ViewGroup(){
     useEffect(() => {
         const observer = new IntersectionObserver(
             entries => {
-                if (
-                    entries[0].isIntersecting &&
-                    hasMore &&
-                    !loading
-                ) {
+                if(entries[0].isIntersecting && hasMore && !loading) {
                     setPage(prev => prev + 1);
                 }
             },
@@ -110,7 +106,6 @@ export default function ViewGroup(){
                 threshold: 0.5
             }
         );
-
         if (observerTarget.current) {
             observer.observe(observerTarget.current);
         }
@@ -188,13 +183,12 @@ export default function ViewGroup(){
     }
 
     return(
-        <div className="container mt-4">
+        <div className="container mt-3">
             <Card>
                 <Card style={{backgroundColor: "#7d35c9"}}>
-                    <div className="text-white px-2">
+                    <div className="text-white px-2" >
                         <div className="row align-items-center">
                             <div className="col-2 col-md-1">
-                                {/* <UsersCollaboration size={30} /> */}
                                 <FaUsers size={36}/>
                             </div>
                             <div className="col-10 col-md-5">
@@ -225,7 +219,7 @@ export default function ViewGroup(){
                 </Card>
                 <Card 
                     title="Group Expenses" 
-                    className="mt-3"
+                    className="mt-3 "
                     action={
                         <Button
                             className="btn-phonepe hover-scale"
@@ -313,7 +307,7 @@ export default function ViewGroup(){
                                                 </td>
                                                 <td>
                                                     <Button
-                                                        onClick={()=>navigate("/")}
+                                                        onClick={()=>navigate(`/expenses/${expense.id}/view`)}
                                                         className="btn-phonepe hover-scale"
                                                     >
                                                         &gt;
@@ -325,8 +319,15 @@ export default function ViewGroup(){
                                     </tbody>
                                 </table>
                             </div>
+
                             {hasMore && (
                                 <div ref={observerTarget} style={{ height: "20px" }} />
+                            )}
+                            { loading && (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-primary"/>
+                                    <p className="text-muted small mt-2">Loading expenses...</p>
+                                </div>
                             )}
                             {!hasMore && expenses.length > 0 && (
                                 <p className="text-center text-muted py-3">
@@ -341,8 +342,12 @@ export default function ViewGroup(){
                                     <Card
                                         key={expense.id}
                                         className="mb-3"
+                                        style={{
+                                            backgroundColor: '#f5f0ff', 
+                                            border: '1px solid #ded2f4'  
+                                        }}
                                     >
-                                        <div className="d-flex flex-column gap-3">
+                                        <div className="d-flex flex-column gap-1">
                                             
                                             <div className="d-flex justify-content-between">
                                                 <span className="fw-bold">{expense.description}</span>
@@ -358,39 +363,69 @@ export default function ViewGroup(){
                                                     <span>{expense.paidBy}</span>
                                                 </div>
                                             </div>
-                                            <div className="d-flex gap-2 align-items-center ps-2">
-                                                <span>Split Type: </span>
-                                                <span className="badge bg-success">{expense.status}</span>
-                                            </div>
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <div className="d-flex gap-2 align-items-center ">
+                                                        <span>Type: </span>
+                                                        <span className="badge bg-success">{expense.status}</span>
+                                                    </div>
 
-                                            <div className="d-flex align-items-center ps-2">
-                                                <span>Participants:</span>
-                                                {expense?.participants.map((name, index)=>{
-                                                    const letter = name.trim().charAt(0).toUpperCase();
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold bg-primary border border-2 border-white"
-                                                            style={{
-                                                                width: '32px',
-                                                                height: '32px',
-                                                                fontSize: '13px',
-                                                                marginLeft: index===0 ? '0' : '-10px',
-                                                                zIndex: 10 - index
-                                                            }}
-                                                            title={name}
-                                                        >
-                                                            {letter}
-                                                        </div>
-                                                    )
-                                                })}
+                                                    <div className="d-flex align-items-center">
+                                                        <span>Participants:</span>
+                                                        {expense?.participants.map((name, index)=>{
+                                                            const letter = name.trim().charAt(0).toUpperCase();
+                                                            return (
+                                                                <div
+                                                                    key={index}
+                                                                    className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold bg-primary border border-2 border-white"
+                                                                    style={{
+                                                                        width: '32px',
+                                                                        height: '32px',
+                                                                        fontSize: '13px',
+                                                                        marginLeft: index===0 ? '0' : '-10px',
+                                                                        zIndex: 10 - index
+                                                                    }}
+                                                                    title={name}
+                                                                >
+                                                                    {letter}
+                                                                </div>
+                                                            )
+                                                        })}
+
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Button 
+                                                        className="btn-phonepe hover-scale"
+                                                        onClick={()=>navigate(`/expenses/${expense.id}/view`)}
+                                                        
+                                                    >
+                                                        <span>View Details </span>
+                                                    </Button>
+                                                </div>
 
                                             </div>
+                                            
                                             
                                         </div>
                                     </Card>
                                 ))
+                                
                             }
+                            {hasMore && (
+                                <div ref={observerTarget} style={{ height: "20px" }} />
+                            )}
+                            {loading && (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-primary"/>
+                                    <p className="text-muted small mt-2">Loading expenses...</p>
+                                </div>
+                            )}
+                            {!hasMore && expenses.length > 0 && (
+                                <p className="text-center text-muted py-3">
+                                    You have reached the end of the expenses.
+                                </p>
+                            )}
                         </div>
                         <div className="d-flex justify-content-end">
                             <Button

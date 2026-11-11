@@ -45,5 +45,10 @@ public class UserFacadeImpl implements UserFacade {
         }
     }
 
+    @Override
+    public UserResponse getProfile() {
+        return userService.getProfile();
+    }
+
 
 }

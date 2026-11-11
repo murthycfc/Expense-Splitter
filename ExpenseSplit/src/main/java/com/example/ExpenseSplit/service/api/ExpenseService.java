@@ -20,7 +20,7 @@ public interface ExpenseService {
     List<MemberBalance> getMemberBalances();
     BigDecimal getTotalExpenses();
     BaseResponse deleteExpense(Expense expense);
-    BaseResponse editExpense( Expense expense, ExpenseRequest request);
+    ExpenseResponse editExpense( Expense expense, ExpenseRequest request);
     ExpenseResponse getExpense(Expense expense);
 
 }

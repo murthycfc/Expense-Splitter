@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Groups from "./pages/Groups";
 import ViewGroup from "./pages/ViewGroup";
+import ViewExpense from "./pages/ViewExpense";
 
 function App() {
   const router = createBrowserRouter([
@@ -22,6 +23,10 @@ function App() {
         {
           path: "groups/:groupId/view",
           element: <ViewGroup />
+        },
+        {
+          path:"expenses/:expenseId/view",
+          element: <ViewExpense />
         },
         {
           

@@ -6,6 +6,7 @@ import com.example.ExpenseSplit.dto.response.UserResponse;
 import com.example.ExpenseSplit.exception.BadRequestException;
 import com.example.ExpenseSplit.model.User;
 import com.example.ExpenseSplit.repo.UserRepository;
+import com.example.ExpenseSplit.security.SecurityUtils;
 import com.example.ExpenseSplit.service.api.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,19 @@ public class UserServiceImpl implements UserService {
             return response;
         } catch (Exception e) {
             log.error("An unexpected error occurred in deleteUser method {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public UserResponse getProfile() {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            UserResponse response = new UserResponse();
+            BeanUtils.copyProperties(currentUser, response);
+            return response;
+        } catch (Exception e) {
+            log.error("An unexpected error occurred in getProfile method {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
     }

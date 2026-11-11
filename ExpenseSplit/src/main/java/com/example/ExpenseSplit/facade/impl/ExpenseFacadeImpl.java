@@ -81,7 +81,7 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     }
 
     @Override
-    public BaseResponse editExpense(UUID expenseId, ExpenseRequest request) {
+    public ExpenseResponse editExpense(UUID expenseId, ExpenseRequest request) {
         try {
             Expense expense = expenseRepository.findExpenseById(expenseId.toString())
                     .orElseThrow(()->new ResourceNotFoundException("Expense not found"));

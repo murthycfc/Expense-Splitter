@@ -12,6 +12,11 @@ export async function getAllUsers() {
     return response.data;
 }
 
+export async function getProfile() {
+    const response = await apiClient.get(`/api/profile`);
+    return response.data;
+}
+
 
 
 export async function loadGroups() {
@@ -42,6 +47,11 @@ export async function getGroup(groupId) {
 export async function getExpenses(groupId, page=0, size=10){
     const response = await apiClient.get(`/api/groups/${groupId}/getExpenses`, {params: {page, size}});
     return response.data;
+}
+
+export async function getExpense(expenseId) {
+    const response = await apiClient.get(`/api/expenses/getExpense/${expenseId}`)
+    return response;
 }
 
 export async function getMembers(groupId) {
@@ -89,21 +99,21 @@ export async function deleteUser(userId) {
 }
 
 export async function deleteExpense(expenseId) {
-    const response = await apiClient.delete(`${BASE_URL}/api/deleteExpense/${expenseId}`)
+    const response = await apiClient.delete(`/api/expenses/deleteExpense/${expenseId}`)
     return response.data;   
 }
 
 export async function editExpense(expenseId, request) {
-    const response = await apiClient.put(`${BASE_URL}/api/editExpense/${expenseId}`,
+    const response = await apiClient.put(`/api/expenses/editExpense/${expenseId}`,
         request
     );
     return response.data;
 }
 
-export async function getExpense(expenseId) {
-    const response = await apiClient.get(`${BASE_URL}/api/getExpense/${expenseId}`)
-    return response.data;
-}
+// export async function getExpense(expenseId) {
+//     const response = await apiClient.get(`${BASE_URL}/api/getExpense/${expenseId}`)
+//     return response.data;
+// }
 
 export async function login(request) {
     const response = await apiClient.post(`${BASE_URL}/auth/login`,request);

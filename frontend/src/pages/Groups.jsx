@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import Modal from "react-bootstrap/Modal";
 import Input from "../components/Input";
 import Textarea from "../components/Textarea";
+import GroupValidation from "../validation/addGroupValidation";
 
 export default function Groups(){
     const [groups, setGroups] = useState([]);
@@ -44,13 +45,21 @@ export default function Groups(){
         setShowGroupModal(true);
     }
 
-    async function handleGroupSubmit() {
+    async function handleGroupSubmit(e) {
+        e.preventDefault();
+        setErrors({});
+        const valiadationErrors = GroupValidation(group.name);
+        console.log(valiadationErrors);
+        if(Object.keys(valiadationErrors).length>0){
+            console.log(valiadationErrors);
+            setErrors(valiadationErrors);
+            return;
+        }
         try {
             if(updatingGroupId){
                 const data = await updateGroup(updatingGroupId,group);
                 setGroups(prev => prev.map(item => 
                     item.id===updatingGroupId ? data : item));
-
             }
             else {
                 const data = await createGroup(group);
@@ -68,7 +77,7 @@ export default function Groups(){
             })
             setErrors({});
         } catch (error) {
-            setErrors({server: error?.response?.data?.message})
+            setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
         }
     }
 
@@ -125,16 +134,20 @@ export default function Groups(){
 
     return (
         <div className="container my-4">
-            <Card title="Groups">
+            <Card 
+                title="Groups"
+                className="mt-3 px-2"
+                action={
+                    <Button 
+                        className="btn-phonepe mb-3 hover-scale px-2"
+                        onClick={handleCreateGroup}
+                    >
+                        + Create Group
+                    </Button>
+                }
+            >
                 <div className="d-flex flex-column">
-                    <div className="d-flex justify-content-end">
-                        <Button 
-                            className="btn-phonepe mb-3 hover-scale px-2"
-                            onClick={handleCreateGroup}
-                        >
-                            + Create Group
-                        </Button>
-                    </div>
+                    
                     <div className="table-responsive border rounded">
                         <table className="table table-striped align-middle table-hover groups-table">
                             <colgroup>
@@ -209,16 +222,9 @@ export default function Groups(){
                 <Modal.Header closeButton>
                     <Modal.Title>{updatingGroupId ? "Update Group" : "Create Group"} </Modal.Title>
                 </Modal.Header>
-                <form onSubmit={(e)=>{
-                    e.preventDefault();
-                    handleGroupSubmit();
-                }}>
+                <form onSubmit={
+                    handleGroupSubmit}>
                     <Modal.Body>
-                        {errors.server && (
-                            <div className="alert alert-danger">
-                                {errors.server}
-                            </div>
-                        )}
                         <div className="row ">
                             <div className="col-12 col-md-6 ">
                                 <Input 
@@ -245,6 +251,11 @@ export default function Groups(){
                     </Modal.Body>
 
                     <Modal.Footer>
+                        {errors.server && (
+                            <div className="alert alert-danger">
+                                {errors.server}
+                            </div>
+                        ) }
                         <Button
                             type="button"
                             className="btn-secondary"

@@ -33,7 +33,7 @@ public class ExpenseController {
     }
 
     @PutMapping("/editExpense/{expenseId}")
-    public ResponseEntity<BaseResponse> editExpense( @PathVariable UUID expenseId, @Valid @RequestBody ExpenseRequest request){
+    public ResponseEntity<ExpenseResponse> editExpense( @PathVariable UUID expenseId, @Valid @RequestBody ExpenseRequest request){
         return ResponseEntity.ok(expenseFacade.editExpense( expenseId, request));
     }
 

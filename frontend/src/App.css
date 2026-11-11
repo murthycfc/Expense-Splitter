@@ -8,15 +8,40 @@
 }
 
 body {
-    background: linear-gradient(
+    /* background: linear-gradient(
         135deg,
         #c8eab6,
         #5a8ef6
-    );
+    ); */
+    background: linear-gradient(135deg, #F5F0FF 0%, #EDE5FF 100%);
     min-height: 100vh;
 }
 
+.app-navbar {
+    background-color: #5F259F;
+    color: white;
+}
 
+.navbar-logo {
+    color: #ffffff;
+}
+
+.profile-modal-header{
+    height: 100px;
+    background: linear-gradient(120deg, #9B6BE0, #5F259F, #451580);
+}
+
+.profile-avatar{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 24px;
+}
 
 .hover-scale {
   cursor: pointer;
@@ -82,24 +107,35 @@ body {
 }
 
 
+
 .expense-date-col{
-    width: 10;
+    width: 10%;
 }
 .expense-description-col{
-    width: 20;
+    width: 20%;
 }
 .expense-amount-col{
-    width: 10;
+    width: 10%;
 }
 .expense-payer-col{
-    width: 10;
+    width: 10%;
 }
 .expense-participants-col{
-    width: 20;
+    width: 20%;
 }
 .expense-spliyType-col{
-    width: 15;
+    width: 15%;
 }
 .expense-action-col{
-    width: 15;
+    width: 15%;
+}
+
+.participant-name-col{
+    width: 30%;
+}
+.partcipant-percentage-col{
+    width: 40%;
+}
+.participant-amount-col{
+    width: 30%;
 }

@@ -12,5 +12,6 @@ public interface UserService {
     UserResponse addUser(UserAddRequest request);
     List<UserResponse> getAllUsers(String email);
     BaseResponse deleteUser(User user);
+    UserResponse getProfile();
 }
 
