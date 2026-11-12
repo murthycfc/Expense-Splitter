@@ -58,7 +58,7 @@ export default function ViewExpense(){
                 ...prev,
                 participants: extractedUserIds
             }))
-            
+            console.log(expenseData);
             if(expenseData?.participants){
                 const initialPercentagesObj = {};
                 expenseData.participants.forEach(participant =>{
@@ -180,10 +180,11 @@ export default function ViewExpense(){
                                 </Button>
                             </div>
                         </div>
-                        <div>
-                            <div className="d-flex flex-column flex-md-row justify-content-md-around gap-3 mt-3">
-                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-2">
-                                    <div className="d-flex flex-md-column align-items-center gap-2">
+                        <div className="mx-auto mx-md-0">
+                            <div className="">
+                                <div className="d-flex flex-column flex-md-row align-items-start  justify-content-md-around gap-3 mt-3">
+                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
+                                    <div className="d-flex flex-md-column justify-content-start align-items-start align-items-md-center gap-2">
                                         <Calendar 
                                             color="#864dc2"
                                         />
@@ -193,9 +194,9 @@ export default function ViewExpense(){
                                     <span className="fw-bold"><DateFormatter date={expenseData?.date}/></span>
                                 </div>
                                 
-                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-2">
+                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
                                     
-                                    <div className="d-flex flex-md-column align-items-center gap-2">
+                                    <div className="d-flex flex-md-column justify-content-start align-items-start align-items-md-center gap-2">
                                         <CircleDollarSign 
                                             color="#864dc2"
                                         />
@@ -204,8 +205,8 @@ export default function ViewExpense(){
                                     
                                     <span className="fw-bold">{expenseData?.amount}</span>
                                 </div>
-                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-2">
-                                    <div className="d-flex flex-md-column align-items-center gap-2">
+                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
+                                    <div className="d-flex flex-md-column justify-content-center align-items-start align-items-md-center gap-2">
                                         <UserRound 
                                             color="#864dc2"
                                         />
@@ -214,8 +215,8 @@ export default function ViewExpense(){
                                     
                                     <span className="fw-bold">{expenseData?.payerName}</span>
                                 </div>
-                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-2">
-                                    <div className="d-flex flex-md-column align-items-center gap-2">
+                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
+                                    <div className="d-flex flex-md-column justify-content-start align-items-start align-items-md-center gap-2">
                                         <Split 
                                             color="#864dc2"
                                         />
@@ -225,15 +226,17 @@ export default function ViewExpense(){
                                     <span className="fw-bold">{expenseData?.status}</span>
                                 </div>
                             </div>
+                            </div>
+                            
                             <div>
                                 <Card
                                     title="Participants"
                                     icon={<Users style={{color:"864dc2"}}/>}
-                                    className="mt-3 "
+                                    className={`mt-3 mx-auto w-100 w-md-100`}
                                 >
                                     <div className="row justify-content-center">
-                                        <div className="col-12 col-md-10">
-                                            <div className="table-responsive rounded shadow-sm mx-auto w-100 w-md-50">
+                                        <div className="col-12 col-md-10 mx-auto ">
+                                            <div className="table-responsive rounded shadow-sm ">
                                                 <table className="table align-middle table-striped">
                                                     <colgroup>
                                                         <col className="participant-name-col"/>
@@ -243,7 +246,10 @@ export default function ViewExpense(){
                                                     <thead>
                                                         <tr className="text-center">
                                                             <th>Name</th>
-                                                            <th> Percentage</th>
+                                                            {expenseData?.status==="PERCENTAGE" && (
+                                                                <th> Percentage</th>
+                                                            )}
+                                                            
                                                             <th>Amount</th>
                                                         </tr>
                                                     </thead>
@@ -258,16 +264,19 @@ export default function ViewExpense(){
                                                                         {participant.name}
                                                                     </div>
                                                                 </td>
-                                                                <td>
-                                                                    {participant.percent ? (
-                                                                        <span>{participant?.percent}%</span>
+                                                                {expenseData?.status==="PERCENTAGE" && (
+                                                                    <td>
+                                                                        {participant.percent ? (
+                                                                            <span>{participant?.percent}%</span>
+                                                                            
+                                                                        ) : (
+                                                                            <span>null</span>
+                                                                        )
+                                                                    }
                                                                         
-                                                                    ) : (
-                                                                        <span>null</span>
-                                                                    )
-                                                                }
-                                                                    
-                                                                </td>
+                                                                    </td>
+                                                                )}
+                                                                
                                                                 <td>
                                                                     <div className="badge rounded-pill" style={{backgroundColor:"#9558d6"}}>
                                                                         {participant?.value}
@@ -339,7 +348,9 @@ export default function ViewExpense(){
                 centered
                 size="lg"
             >
-                <Modal.Header closeButton>
+                <Modal.Header 
+                    closeButton
+                >
                     <Modal.Title>
                         Update Expense
                     </Modal.Title>
@@ -489,12 +500,18 @@ export default function ViewExpense(){
                                             
                                             </thead>
                                             <tbody>
-                                                {updatingExpenseData?.participants.map(id=>{
-                                                    const member = members?.find(member => member.id===id)
+                                                {
+                                                updatingExpenseData?.participants.map(id=>{
+                                                    console.log(id);
+                                                    const member = members?.find(member => id===member.id)
+                                                    console.log(member);
+                                                    if(!member) return null
                                                     return(
+                                                        
                                                         <tr key={id}>
                                                             <td>
                                                                 {member?.name}
+                                                                
                                                             </td>
                                                             <td>
                                                                 <div className="d-flex">
@@ -546,6 +563,9 @@ export default function ViewExpense(){
                             className="btn-secondary"
                             onClick={()=>{
                                 setErrors({})
+                                setUpdateModal(false);
+                                setUpdatingExpenseData({});
+                                setPercentages({})
                             }}
                         >
                             Cancel

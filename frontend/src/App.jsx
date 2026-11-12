@@ -9,11 +9,13 @@ import Registration from "./pages/Registration";
 import Groups from "./pages/Groups";
 import ViewGroup from "./pages/ViewGroup";
 import ViewExpense from "./pages/ViewExpense";
+import AuthLoader from "./loader/authLoader";
 
 function App() {
   const router = createBrowserRouter([
     {
       path:"/",
+      loader: AuthLoader,
       element: <RootLayout />,
       children:[
         {
@@ -28,18 +30,18 @@ function App() {
           path:"expenses/:expenseId/view",
           element: <ViewExpense />
         },
-        {
+        // {
           
-          element: <Home />
-        },
-        {
-          path: "/balances" ,
-          element: <Balances />
-        },
-        {
-          path: `/expense/edit/:expenseId`,
-          element: <EditExpense />
-        }
+        //   element: <Home />
+        // },
+        // {
+        //   path: "/balances" ,
+        //   element: <Balances />
+        // },
+        // {
+        //   path: `/expense/edit/:expenseId`,
+        //   element: <EditExpense />
+        // }
 
       ],
       

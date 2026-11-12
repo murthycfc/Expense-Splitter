@@ -51,7 +51,7 @@ export default function Registration(){
             localStorage.setItem("token", data.token);
             navigate("/");
         } catch (error) {
-            setErros({server:error?.response?.data?.message})
+            setErros({server:error?.response?.data?.message ?? "Something went wrong"})
         }
     }
 

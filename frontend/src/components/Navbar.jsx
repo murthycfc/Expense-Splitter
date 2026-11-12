@@ -166,7 +166,11 @@ export default function Navbar() {
                 onHide={()=>setShowLogoutModal(false)}
                 centered
             >
-                <Modal.Header closeButton className="position-relative p-4">
+                <Modal.Header 
+                    closeButton 
+                    className="position-relative p-4"
+                    
+                >
                     <Modal.Title className="position-absolute start-50">
                         Logout <span className="text-danger mx-1 mb-1"><TriangleAlert /></span>
                     </Modal.Title>
@@ -202,6 +206,7 @@ export default function Navbar() {
             >
                 <Modal.Header 
                     closeButton
+                    closeVariant="white"
                     className="text-center"
                     style={{backgroundColor: "#6b36c0"}}
                 >
