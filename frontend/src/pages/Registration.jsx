@@ -60,14 +60,6 @@ export default function Registration(){
         <div className="login-page" style={{ backgroundImage: `url(${bgImage})` }}>
             <div className="container-fluid">
                 <div className="row align-items-center min-vh-100 justify-content-end">
-                    {/* <div className="col-12 col-md-4 text-center">
-                        <img 
-                            src="/expense.png"
-                            className="img-fluid w-75"
-                            alt="expense splitter "
-                        />
-                        <h3 className="fw-bold" style={{color:"#5F259F"}}>Expense Splitter</h3>
-                    </div> */}
                     <div className="col-12 col-md-6">
                         <Card className="p-2 m-2">
                             <div className="d-flex flex-column">
@@ -90,6 +82,18 @@ export default function Registration(){
                                     />
                                 </div>
                                 <div className="col-12 col-md-6">
+                                    <Input 
+                                        id="phoneNumber"
+                                        type="text"
+                                        label="Phone Number"
+                                        required
+                                        placeholder="Enter Phone Number"
+                                        value={registerData.phoneNumber}
+                                        onChange={handleChange}
+                                        error={errors.phoneNumber}
+                                    />
+                                </div>
+                                <div className="col-12">
                                     <Input 
                                         id="email"
                                         type="text"
@@ -138,23 +142,12 @@ export default function Registration(){
                                                 onClick={()=>setShowConfirmPassword(!showConfirmPassword)}
                                                 className="border-0 text-muted bg-white"
                                             >
-                                                {showPassword ? <Eye /> : <EyeOff />}
+                                                {showConfirmPassword ? <Eye /> : <EyeOff />}
                                             </Button>
                                         }
                                     />
                                 </div>
-                                <div className="col-12 col-md-6">
-                                    <Input 
-                                        id="phoneNumber"
-                                        type="text"
-                                        label="Phone Number"
-                                        required
-                                        placeholder="Enter Phone Number"
-                                        value={registerData.phoneNumber}
-                                        onChange={handleChange}
-                                        error={errors.phoneNumber}
-                                    />
-                                </div>
+                                
                                 </div>
                                 {errors.server && (
                                     <div className="alert alert-danger mt-2">

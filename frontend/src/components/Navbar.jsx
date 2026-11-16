@@ -1,5 +1,5 @@
 // import { NavLink } from "react-router-dom";
-import {CircleUserRound, LogOut, Mail, Menu, User, Users2, X } from "lucide-react";
+import {CircleUserRound, LogOut, Mail, Menu, Phone, User, Users2, X } from "lucide-react";
 import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
@@ -8,6 +8,7 @@ import { getProfile, logout } from "../api/apis";
 import Modal from "react-bootstrap/Modal";
 import {  FaUsers } from "react-icons/fa";
 import Card from "./Card";
+import CustomModal from "./CustomModal";
 // import '../App.css'
 
 export default function Navbar() {
@@ -55,7 +56,8 @@ export default function Navbar() {
                     onClick={()=>navigate("/")} 
                     style={{cursor: "pointer"}}
                 >
-                    <FaUsers className="navbar-logo" size={40}/>
+                    {/* <FaUsers className="navbar-logo" size={40}/> */}
+                    <img src="/faviconn.jpg.png" title="favicon" style={{width:"42px", height:"42px"}}/>
                     <span className="fw-bold">Expense Splitter</span>
                 </div>
 
@@ -161,32 +163,22 @@ export default function Navbar() {
                     </div>
                 )}
             </div>
-            <Modal
+
+            <CustomModal
                 show={showLogoutModal}
                 onHide={()=>setShowLogoutModal(false)}
-                centered
+                title={
+                    <span className="d-flex align-items-center justify-content-center gap-2">
+                        <span>Logout</span>
+                        <TriangleAlert className="text-danger mt-2" size={20} />
+                    </span>
+                }
             >
-                <Modal.Header 
-                    closeButton 
-                    className="position-relative p-4"
-                    
-                >
-                    <Modal.Title className="position-absolute start-50">
-                        Logout <span className="text-danger mx-1 mb-1"><TriangleAlert /></span>
-                    </Modal.Title>
-                </Modal.Header>
-
                 <Modal.Body>
                     <p className="text-center">Are you sure want to logout!</p>
                 </Modal.Body>
 
                 <Modal.Footer>
-                    <Button
-                        onClick={()=>setShowLogoutModal(false)}
-                        className="btn btn-secondary"
-                    >
-                        Close
-                    </Button>
                     <Button
                         onClick={()=>confirmLogout()}
                         className="btn btn-danger"
@@ -194,38 +186,32 @@ export default function Navbar() {
                         Logout
                     </Button>
                 </Modal.Footer>
-                
-            </Modal>
-            <Modal
+            </CustomModal>
+
+            <CustomModal
                 show={showProfileModal}
                 onHide={()=>{
                     setShowProfileModal(false)
                     setError()
                 }}
-                centered    
-            >
-                <Modal.Header 
-                    closeButton
-                    closeVariant="white"
-                    className="text-center"
-                    style={{backgroundColor: "#6b36c0"}}
-                >
-                    <Modal.Title className="w-100 text-center m-0">
-                        <div className="d-flex justify-content-center align-items-center">
-                            <div
-                                className="d-flex align-items-center justify-content-center rounded-circle  text-white fw-bold"
-                                style={{width: "52px", height:"52px", fontSize: "26px", backgroundColor: "#ec403d"}}
-                            >
-                                {userInfo?.name.trim().charAt(0).toUpperCase()}
-                            </div>
-
+                title={
+                    <div 
+                        className="d-flex justify-content-center"
+                    >
+                    <div className="d-flex justify-content-center align-items-center">
+                        <div
+                            className="d-flex align-items-center justify-content-center rounded-circle  text-white fw-bold"
+                            style={{width: "52px", height:"52px", fontSize: "26px", backgroundColor: "#ec403d"}}
+                        >
+                            {userInfo?.name.trim().charAt(0).toUpperCase()}
                         </div>
-                    </Modal.Title>
-                    
-                </Modal.Header>
+                    </div></div>
+                }
+                centerTitle={true}
+            >
                 <Modal.Body>
                     <div className="d-flex flex-column" >
-                        <div className="d-flex flex-column align-items-center">
+                        <div className="d-flex flex-column align-items-center ">
                             <div className="fw-bold fs-4">{userInfo?.name}</div>
                             <div><Mail size={18}/> {userInfo?.email}</div>
                         </div>
@@ -266,6 +252,15 @@ export default function Navbar() {
                                                 </td>
                                                 <td>{userInfo?.email}</td>
                                             </tr>
+                                            <tr>
+                                                <td>
+                                                    <div className="d-flex align-items-center gap-1">
+                                                        <Phone size={20}/>
+                                                        <span>Phone</span>
+                                                    </div>
+                                                </td>
+                                                <td>{userInfo?.phoneNumber}</td>
+                                            </tr>
 
                                         </tbody>
                                     </table>
@@ -274,22 +269,7 @@ export default function Navbar() {
                         </div>
                     </div>
                 </Modal.Body>
-
-                <Modal.Footer>
-                    <div className="d-flex justify-content-center w-100">
-                        <Button
-                            className="btn-phonepe hover-scale w-75"
-                            onClick={()=>{
-                                setShowProfileModal(false)
-                            }}
-                        >
-                            Close
-                        </Button>
-                    </div>
-                    
-                </Modal.Footer>
-
-            </Modal>
+            </CustomModal>
         </nav>
 
     );

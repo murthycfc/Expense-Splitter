@@ -13,9 +13,9 @@ import java.util.UUID;
 @Repository
 public interface ParticipantRepository extends JpaRepository<Participant, UUID> {
     @Query(value = """
-select * from expense_participants where user_id=:userId and is_active=true and is_deleted=false
+select ep.* from expense_participants ep join expenses e on ep.expense_id=e.id where e.group_id=:groupId and ep.user_id=:userId and ep.is_deleted=false
 """, nativeQuery = true)
-    List<Participant> getParticipants(@Param("userId") String userId);
+    List<Participant> getParticipants(@Param("groupId") String groupId, @Param("userId") String userId);
 
     @Query(value = """
 select * from expense_participants where user_id =:userId and expense_id =:expenseId

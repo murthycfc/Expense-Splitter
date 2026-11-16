@@ -8,13 +8,9 @@
 }
 
 body {
-    /* background: linear-gradient(
-        135deg,
-        #c8eab6,
-        #5a8ef6
-    ); */
-    background: linear-gradient(135deg, #F5F0FF 0%, #EDE5FF 100%);
     min-height: 100vh;
+    /* background-color: 	#F7F3FF; */
+    background-image: url("/expense_splitter_bg.png");
 }
 
 .app-navbar {
@@ -51,6 +47,18 @@ body {
   transform: scale(1.15);
 }
 
+.group-card{
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.active-dropdown-card {
+    z-index: 1 ;
+}
+
+.group-card:hover{
+    transform: translateY(-3px);
+}
+
 .btn-phonepe {
     background-color: #5F259F;
     border-color: #5F259F;
@@ -63,9 +71,7 @@ body {
     color: white;
 }
 
-/* .groups-table {
-    margin-bottom: 0;
-} */
+
 
 .groups-table tbody tr:last-child td {
     border-bottom: none;
@@ -76,14 +82,16 @@ body {
     display: none;
 }
 
+
 .group-name-col{
+    width: 20%;
+}
+.group-description-col {
     width: 30%;
 }
-
-.group-description-col {
-    width: 50%;
+.group-created-date-col{
+    width: 20%;
 }
-
 .group-actions-col {
     width: 20%;
 }
@@ -97,6 +105,9 @@ body {
         font-size: 0.7rem;
         margin-top: 3px;
     }
+    .created-date-column{
+        display: none;
+    }
     .group-name-col {
         width: 75%;
     }
@@ -105,29 +116,43 @@ body {
         width: 25%;
     }
 }
+.expense-table {
+    width: 100%;
+    table-layout: fixed;
+}
 
+.expense-date-col {
+    width: 14%;
+}
 
-
-.expense-date-col{
-    width: 10%;
-}
-.expense-description-col{
-    width: 20%;
-}
-.expense-amount-col{
-    width: 10%;
-}
-.expense-payer-col{
-    width: 10%;
-}
-.expense-participants-col{
-    width: 20%;
-}
-.expense-spliyType-col{
+.expense-description-col {
     width: 15%;
 }
-.expense-action-col{
-    width: 15%;
+
+.expense-amount-col {
+    width: 12%;
+}
+
+.expense-payer-col {
+    width: 12%;
+}
+
+.expense-participants-col {
+    width: 21%;
+}
+
+.expense-spliyType-col {
+    width: 16%;
+}
+
+.expense-action-col {
+    width: 10%;
+}
+
+.expense-description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .participant-name-col{
@@ -138,4 +163,77 @@ body {
 }
 .participant-amount-col{
     width: 30%;
+}
+
+
+.summary-card {
+    padding: 20px;
+    background: linear-gradient(135deg, #ffffff, #f6efff);
+    border: 1px solid #e7d8f8;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(95, 37, 159, 0.10);
+    border-color: #c9a9ea;
+}
+
+.summary-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #777080;
+}
+
+.summary-value {
+    font-size: 27px;
+    font-weight: 700;
+    color: #211832;
+}
+
+.summary-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background-color: #efe3ff;
+    color: #5f259f;
+}
+
+.member-balance-card{
+    background: linear-gradient(135deg, #ffffff, #f6efff);
+    border: 1px solid #e7d8f8;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+}
+
+.member-balance-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(95, 37, 159, 0.10);
+    border-color: #c9a9ea;
+}
+
+.balance-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.balance-status.receive {
+    color: #15803D;
+    background: #DCFCE7;
+}
+
+.balance-status.owes {
+    color: #DC2626;
+    background: #FEE2E2;
+}
+
+.balance-status.settled {
+    color: #6B7280;
+    background: #F3F4F6;
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import Card from "../components/Card";
 import { useNavigate, useParams } from "react-router";
-import { addExpense, addMembers, getExpenses, getGroup, getMembers, getNonMembers } from "../api/apis";
-import { ArrowRight, Calendar, UserCheck, UserPlus, UsersCollaboration } from "lucide-react";
+import { addExpense, addMembers, getExpenses, getGroup, getMemberBalances, getMembers, getNonMembers, getTotalExpenses, getTotoalExpenses, removeMember } from "../api/apis";
+import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, DollarSign, Receipt, ReceiptPoundSterling, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
 import Button from "../components/Button";
 import DateFormatter from "../utils/DateFormatter";
 import Input from "../components/Input";
@@ -11,6 +11,8 @@ import CustomDatePicker from "../components/CustomDatePicker";
 import Select from "../components/Select";
 import AddExpenseValidation from "../validation/AddExpenseValidation";
 import { FaUsers } from "react-icons/fa";
+import CustomModal from "../components/CustomModal";
+import SummaryCard from "../components/SummaryCard";
 
 export default function ViewGroup(){
     const [groupInfo, setGroupInfo] = useState();
@@ -31,10 +33,15 @@ export default function ViewGroup(){
         participants:[]
     });
     const [percentages, setPercentages] = useState({});
+    const [viewMembersModal, setViewMembersModal] = useState(false);
+
+    const [totalExpenseAmount, setTotalExpenseAmount] = useState();
+    const [memberBalances, setMemberBalances] = useState([]);
 
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [emailSearch, setEmailSearch] = useState();
 
     const observerTarget = useRef(null);
 
@@ -80,17 +87,44 @@ export default function ViewGroup(){
             setErrors({server: error?.response?.data?.message})
         }
     }
-    async function fetchNonMembers(groupId) {
+    async function fetchNonMembers(email="") {
         try {
-            const data = await getNonMembers(groupId);
+            console.log(email);
+            const data = await getNonMembers(groupId, email);
             setNonMembers(data);
         } catch (error) {
             setErrors({server: error?.response?.data?.message})
         }
     }
+
+    async function fetchTotalExpenses(groupId) {
+        try {
+            const response = await getTotalExpenses(groupId);
+            setTotalExpenseAmount(response.data);
+            console.log(response.data)
+        } catch (error) {
+            setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
+        }
+    }
+
+    async function fetchMemberBalances(groupId) {
+        try {
+            const response = await getMemberBalances(groupId);
+            setMemberBalances(response.data);
+            console.log(response.data);
+        } catch (error) {
+            setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
+        }
+    }
+
     useEffect(()=>{
         fetchGroup(groupId);
+        fetchMembers(groupId);
+        fetchTotalExpenses(groupId);
+        fetchMemberBalances(groupId);
+
     },[groupId])
+    
     useEffect(()=>{
         fetchExpenses(groupId);
     },[groupId, page]);
@@ -168,13 +202,13 @@ export default function ViewGroup(){
     async function handleAddMembers() {
         setErrors({})
         try {
+            if(selectedUserIdsToAdd.length<1){
+                setErrors({server :"Select atleast one user"});
+                return;
+            }
             console.log("handleAddMembers")
             const data = await addMembers(groupId, selectedUserIdsToAdd);
-            setGroupInfo(prev =>({
-                ...prev,
-                members: [...prev.members, ...data]
-                
-            }))
+            setMembers(prev => [...prev, ...data]);
             setSelectedUserIdsToAdd([]);
             setShowAddMembersModal(false);
         } catch (error) {
@@ -182,16 +216,31 @@ export default function ViewGroup(){
         }
     }
 
+    async function handleRemoveMember( userId) {
+        try {
+            const data = await removeMember(groupId, userId);
+            setMembers(prevMembers => prevMembers.filter(member => member.id!==data.userId))
+        } catch (error) {
+            setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
+        }
+    }
+
     return(
         <div className="container mt-3">
+            <Button 
+                className="btn-phonepe hover-scale mb-3"
+                onClick={()=>navigate("/")}
+            >
+                <ArrowLeft /> Back
+            </Button>
             <Card>
                 <Card style={{backgroundColor: "#7d35c9"}}>
-                    <div className="text-white px-2" >
-                        <div className="row align-items-center">
+                    <div className="text-white px-1" >
+                        <div className="row align-items-center gx-2">
                             <div className="col-2 col-md-1">
-                                <FaUsers size={36}/>
+                                <FaUsers size={40}/>
                             </div>
-                            <div className="col-10 col-md-5">
+                            <div className="col-6 col-md-9">
                                 <div className="d-flex flex-column gap-0">
                                     <h3 className="mb-0">{groupInfo?.name}</h3>
                                     {groupInfo?.description && (
@@ -199,24 +248,66 @@ export default function ViewGroup(){
                                     )}
                                     <div className="d-flex align-items-center gap-1">
                                         <span className="d-inline d-md-none">
-                                            {groupInfo?.members?.slice(0,2).map(member =>member.name).join(", ")}
-                                            {groupInfo?.members?.length>2 &&(
-                                                <span className="fw-semibold ms-1">+{groupInfo.members.length-2} more</span>
+                                            {members?.slice(0,2).map(member =>member.name).join(", ")}
+                                            {members?.length>2 &&(
+                                                <span className="fw-semibold ms-1">+{members.length-2} more</span>
                                             )}
                                         </span>
                                         <span className="d-none d-md-inline">
-                                            {groupInfo?.members?.slice(0, 6).map(m => m.name).join(", ")}
-                                            {groupInfo?.members?.length > 6 && (
-                                                <span className="fw-semibold ms-1">+{groupInfo.members.length - 6} more</span>
+                                            {members?.slice(0, 6).map(m => m.name).join(", ")}
+                                            {members?.length > 6 && (
+                                                <span className="fw-semibold ms-1">+{members.length - 6} more</span>
                                             )}
                                         </span>
                                         
                                     </div>
                                 </div>
                             </div>
+                            <div className="col-4 col-md-2">
+                                <Button
+                                    className=" btn-phonepe hover-scale"
+                                    onClick={()=>{
+                                        setViewMembersModal(true)
+                                        fetchMembers(groupId);
+                                    }}
+                                >
+                                    View Members
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </Card>
+                <Card className="mt-3" title="Group Summary" >
+                    <div className="row g-3">
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Amount"
+                                value={`₹${totalExpenseAmount}`}
+                                description="Total amount spent in this group"
+                                icon={<Wallet />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Members"
+                                value={members.length}
+                                description="Group participants"
+                                icon={<Users />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Expenses"
+                                value={expenses.length}
+                                description="Recorded transactions"
+                                icon={<ReceiptPoundSterling />}
+                            />
+                        </div>
+                    </div>
+                </Card>
+
+                
+
                 <Card 
                     title="Group Expenses" 
                     className="mt-3 "
@@ -225,7 +316,7 @@ export default function ViewGroup(){
                             className="btn-phonepe hover-scale"
                             onClick={()=>{
                                 setShowAddMembersModal(true)
-                                fetchNonMembers(groupId);
+                                fetchNonMembers();
                             }}
                         >
                             Add Members
@@ -235,7 +326,7 @@ export default function ViewGroup(){
                     <div className="">
                         <div className="d-none d-md-block">
                             <div className="table-responsive rounded">
-                                <table className="table align-middle table-striped">
+                                <table className="table align-middle table-striped expense-table">
                                     <colgroup>
                                         <col className="expense-date-col"/>
                                         <col className="expense-description-col"/>
@@ -247,33 +338,56 @@ export default function ViewGroup(){
                                     </colgroup>
                                     <thead className="table-light">
                                         <tr>
-                                            <th>Date</th>
+                                            <th className="">Date</th>
                                             <th>Title</th>
                                             <th>Amount</th>
                                             <th>Payer</th>
                                             <th>Participants</th>
                                             <th>Split Type</th>
-                                            <th>Action</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {expenses?.map((expense)=>(
+                                        {expenses.length===0 ? (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-5 text-muted">
+                                                    <div className="d-flex flex-column align-items-center gap-2">
+                                                        <Receipt size={35} />
+                                                        <span className="fw-semibold">No expenses found</span>
+                                                        <small>Start by adding your first expense.</small>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ): (
+                                            expenses?.map((expense)=>(
                                             <tr
                                                 key={expense.id}
                                                 className=""
                                             >
-                                                <td>
+                                                <td className="text-nowrap">
                                                     <DateFormatter date={expense.date}/>
                                                 </td>
-                                                <td className="fw-bold">
+                                                <td className="fw-bold expense-description">
                                                     {expense.description}
                                                 </td>
                                                 <td>
                                                     ₹{expense.amount}
                                                 </td>
                                                 <td>
+                                                    <div className="d-flex gap-1">
+                                                        <div 
+                                                            className="d-flex align-items-center justify-content-center rounded-circle fw-bold p-1"
+                                                            style={{
+                                                                backgroundColor:" #efe3ff",
+                                                                width:"28px",
+                                                                height:"28px",
+                                                            }}>
+                                                            <User/>
+                                                        </div>
+                                                        
+                                                        <span>{expense.paidBy}</span>
+                                                    </div>
                                                     
-                                                    {expense.paidBy}
                                                 </td>
                                                 <td>
                                                     <div className="d-flex align-items-center ps-2">
@@ -314,7 +428,9 @@ export default function ViewGroup(){
                                                     </Button>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))
+                                        )}
+                                        
                                         
                                     </tbody>
                                 </table>
@@ -431,8 +547,9 @@ export default function ViewGroup(){
                             <Button
                                 className="btn-phonepe hover-scale"
                                 onClick={()=>{
-                                    fetchMembers(groupId);
-                                    setShowExpenseModal(true)
+                                    // fetchMembers(groupId);
+                                    // setShowExpenseModal(true)
+                                    navigate(`/groups/${groupId}/createExpense`)
                                 }}
 
                             >
@@ -441,9 +558,122 @@ export default function ViewGroup(){
                         </div>
                     </div>
                 </Card>
+
+                <Card
+                    title="Member Balances"
+                    className="mt-3"
+                >
+                    <div className="row g-3">
+                        {memberBalances.map((member)=>(
+                            <div className="col-12 col-sm-6 col-lg-3" key={member.userId}>
+                                <Card
+                                    className="member-balance-card"
+                                >
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 className="fw-bold mb-0">
+                                            {member.name}
+                                        </h6>
+
+                                        <span className={`balance-status ${member.status.toLowerCase()}`}>
+                                            {member.status}
+                                        </span>
+
+                                    </div>
+                                <div className="d-flex justify-content-between">
+                                    
+                                    
+                                    <small className="text-muted">
+                                        Net Balance:
+                                    </small>
+                                    <h5 className={`fw-bold mb-0 ${
+                                        member.status === "RECEIVE"
+                                            ? "text-success"
+                                            : member.status === "OWES"
+                                                ? "text-danger"
+                                                : "text-secondary"
+                                    }`}>
+                                        ₹{Math.abs(member.netBalance).toFixed(2)}
+                                    </h5>
+                                    
+                                </div>
+
+                                <hr />
+                                <div className="d-flex justify-content-between">
+                                    <span className="text-muted">
+                                        Total Paid
+                                    </span>
+
+                                    <span className="fw-semibold">
+                                        ₹{member.totalPaid.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="d-flex justify-content-between">
+                                    <span className="text-muted">
+                                        Total Share
+                                    </span>
+
+                                    <span className="fw-semibold">
+                                        ₹{member.totalShare.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                </Card>
+
+                            </div>
+                        ))}
+                    </div>
+
+                </Card>
             </Card>
 
-            <Modal
+            <CustomModal
+                show={viewMembersModal}
+                onHide={()=>{
+                    setViewMembersModal(false)
+                    setErrors({})
+                }}
+                title="Group Members"
+                
+            >
+                <div className="mx-4 mt-3">
+                    {errors.server && (
+                        <div className="alert alert-danger">
+                            {errors.server}
+                        </div>
+                    )}
+                        {members.map(member =>(
+                            <div 
+                                key={member.id}
+                                className="row align-items-center mb-2 gx-4"
+                            >
+                                <div className="col-1">
+                                    
+                                    <CircleUserRound size={24} />
+                                </div>
+                                <div className="col-2">
+                                    {member.name}
+                                </div>
+                                <div className="col-5">
+                                    {member.email}
+                                </div>
+                                <div className="col-4">
+                                    <Button 
+                                        onClick={()=>handleRemoveMember(member.id)}
+                                        className="btn-phonepe hover-scale">
+                                        Remove
+                                    </Button>
+                                </div>
+                                
+                            </div>
+                            
+                        ))}
+                </div>
+                
+
+            </CustomModal>
+
+            <CustomModal
                 show={showExpensemodal}
                 onHide={()=>{
                     setShowExpenseModal(false)
@@ -457,14 +687,9 @@ export default function ViewGroup(){
                     })
                     setErrors({})
                 }}
-                centered
                 size="lg"
+                title="Create Expense"
             >
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        Create Expense
-                    </Modal.Title>
-                </Modal.Header>
                 <form onSubmit={handleSubmit}>
                     <Modal.Body>
                         <div className="row">
@@ -664,24 +889,6 @@ export default function ViewGroup(){
                             </div>
                         )}
                         <Button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={()=>{
-                                setShowExpenseModal(false)
-                                setExpenseData({
-                                    description:"",
-                                    amount:"",
-                                    date:"",
-                                    paidBy:"",
-                                    status:"",
-                                    participants:[]
-                                })
-                                setErrors({})
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
                             className="btn-phonepe hover-scale"
                         
                         >
@@ -689,63 +896,73 @@ export default function ViewGroup(){
                         </Button>
                     </Modal.Footer>
                 </form>
+            </CustomModal>
 
-
-            </Modal>
-
-            <Modal
+            <CustomModal
                 show={showAddMembersModal}
                 onHide={()=>{
                     setShowAddMembersModal(false)
                     setSelectedUserIdsToAdd([]);
                     setErrors({})
+                    setEmailSearch("");
                 }}
-                centered
+                title="Add Members"
             >
-                <Modal.Header closeButton>
-                    <Modal.Title>Add Members</Modal.Title>
-                </Modal.Header>
-
                 <Modal.Body>
-                    <div className="">
-                        {nonMembers.map((nonMember)=>{
-                            return (
-                                <div 
-                                    key={nonMember.id}
-                                    className=""
-                                >
-                                    <div className="d-flex align-items-center justify-content-between">
-                                        <span>{nonMember.name}</span>
-                                        <span>{nonMember.email}</span>
-                                        <Button
-                                            onClick={()=>(
-                                                setSelectedUserIdsToAdd((prev) =>{
-                                                    if(prev.includes(nonMember.id)){
-                                                        return prev.filter(id => id!==nonMember.id)
-                                                    }
-                                                    return [...prev, nonMember.id];
-                                                })
-                                            )}
-                                            className={`${selectedUserIdsToAdd?.includes(nonMember.id) ? 'text-success' : 'text-muted'}`}
-                                        >
-                                            {selectedUserIdsToAdd.includes(nonMember.id) ? (
-                                                // <CheckCircle2 />
-                                                // <CircleDot />
-                                                <UserCheck />
-                                            ) : (
-                                                // <Circle />
-                                                <UserPlus />
-                                            )}
-                                             
-                                        </Button>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                    <div className="row">
+                        <div className="col-9">
+                            <Input 
+                                id="emailSearch"
+                                placeholder="Search users by email"
+                                type="text"
+                                value={emailSearch}
+                                onChange={(e)=>{
+                                    setEmailSearch(e.target.value)
+                                }}
+                            />
+                        </div>
+                        <div className="col-3">
+                            <Button 
+                                className="btn-phonepe hover-scale w-100"
+                                onClick={()=>fetchNonMembers(emailSearch)}
+                            >
+                                Search
+                            </Button>
+                        </div>
                     </div>
-
+                    {nonMembers.map((nonMember)=>{
+                        return (
+                            <div 
+                                key={nonMember.id}
+                                className=""
+                            >
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <span>{nonMember.name}</span>
+                                    <span>{nonMember.email}</span>
+                                    <Button
+                                        onClick={()=>(
+                                            setSelectedUserIdsToAdd((prev) =>{
+                                                if(prev.includes(nonMember.id)){
+                                                    return prev.filter(id => id!==nonMember.id)
+                                                }
+                                                return [...prev, nonMember.id];
+                                            })
+                                        )}
+                                        className={`${selectedUserIdsToAdd?.includes(nonMember.id) ? 'text-success' : 'text-muted'}`}
+                                    >
+                                        {selectedUserIdsToAdd.includes(nonMember.id) ? (
+                                            
+                                            <UserCheck />
+                                        ) : (
+                                            <UserPlus />
+                                        )}
+                                            
+                                    </Button>
+                                </div>
+                            </div>
+                        )
+                    })}
                 </Modal.Body>
-
                 <Modal.Footer>
                     {errors.server && (
                         <div className="alert alert-danger">
@@ -753,25 +970,13 @@ export default function ViewGroup(){
                         </div>
                     )}
                     <Button
-                        className="btn-secondary"
-                        onClick={()=>{
-                            setShowAddMembersModal(false)
-                            setSelectedUserIdsToAdd([]);
-                            setErrors({})
-                        }}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
                         className="btn-phonepe hover-scale"
                         onClick={handleAddMembers}
                     >
                         Confirm
                     </Button>
                 </Modal.Footer>
-
-            </Modal>
-            
+            </CustomModal>
         </div>
     )
 }

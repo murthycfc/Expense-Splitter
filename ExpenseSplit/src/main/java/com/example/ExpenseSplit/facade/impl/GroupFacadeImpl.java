@@ -15,8 +15,11 @@ import com.example.ExpenseSplit.repo.UserRepository;
 import com.example.ExpenseSplit.service.api.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,8 +49,8 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<GroupResponse> getGroups() {
-        return groupService.getGroups();
+    public Page<GroupResponse> getGroups(String name, Pageable pageable) {
+        return groupService.getGroups(name, pageable);
     }
 
     @Override
@@ -139,11 +142,11 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<UserResponse> getNonMembers(UUID groupId) {
+    public List<UserResponse> getNonMembers(UUID groupId, String email) {
         try {
             Group group = groupRepository.findByGroupId(groupId.toString())
                     .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
-            return groupService.getNonMembers(group);
+            return groupService.getNonMembers(group, email);
         }
         catch (ResourceNotFoundException e){
             log.error("An error occurred in getNonMembers {}", e.getMessage());
@@ -151,6 +154,40 @@ public class GroupFacadeImpl implements GroupFacade {
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in getNonMembers {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalExpenses(UUID groupId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return groupService.getTotalExpenses(group);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in getTotalExpenses {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in getTotalExpenses {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MemberBalance> getMemberBalances(UUID groupId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+            return groupService.getMemberBalances(group);
+        }
+        catch (ResourceNotFoundException e){
+            log.error("An error occurred in getMemberBalances {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in getMemberBalances {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
     }

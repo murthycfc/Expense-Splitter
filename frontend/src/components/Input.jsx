@@ -1,4 +1,4 @@
-export default function Input({label,type,required,error,id,eye, ...props}){
+export default function Input({label,type,required,error,id,eye,className,containerClassName="mb-3", ...props}){
     const isRadio = type==="radio";
     if(isRadio){
         return (
@@ -21,7 +21,7 @@ export default function Input({label,type,required,error,id,eye, ...props}){
         )
     }
     return (
-        <div className="mb-3">
+        <div className={containerClassName}>
             {label && (
                 <label 
                     className="form-label fw-semibold"
@@ -33,9 +33,9 @@ export default function Input({label,type,required,error,id,eye, ...props}){
                     )}
                 </label>
             )}
-            <div className="input-group">
+            <div className="input-group d-flex">
                 <input 
-                    className="form-control"
+                    className={`form-control ${className ? className : ""}`}
                     type={type}
                     id={id}
                     {...props}

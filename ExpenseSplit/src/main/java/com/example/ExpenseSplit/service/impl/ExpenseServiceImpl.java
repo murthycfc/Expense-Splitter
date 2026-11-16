@@ -119,6 +119,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             BigDecimal amount = request.getAmount();
             int participantSize = request.getParticipants().size();
             List<Participant> participants = new ArrayList<>();
+            BigDecimal total = BigDecimal.ZERO;
 
             for(ParticipantRequest participantRequest : request.getParticipants()){
                 User participantUser = participantUsers.get(participantRequest.getId());
@@ -126,17 +127,27 @@ public class ExpenseServiceImpl implements ExpenseService {
                 participant.setExpense(expense);
                 participant.setUser(participantUser);
                 participant.setPercent(participantRequest.getPercent());
+
                 if(status==Status.PERCENTAGE){
 
                     BigDecimal share = amount.multiply(participantRequest.getPercent().divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP));
                     participant.setValue(share);
+                    total = total.add(share);
                 }
                 else {
                     BigDecimal splitAmount = amount.divide(BigDecimal.valueOf(participantSize),2, RoundingMode.HALF_UP);
                     participant.setValue(splitAmount);
+                    total = total.add(splitAmount);
                 }
                 participants.add(participant);
             }
+
+            BigDecimal remainingAmount = amount.subtract(total);
+            if(remainingAmount.compareTo(BigDecimal.ZERO)>0){
+                Participant payer =  participants.stream().filter(p-> p.getUser().getId().equals(request.getPaidBy())).findFirst().orElse(null);
+                payer.setValue(payer.getValue().add(remainingAmount));
+            }
+
             expense.setParticipants(participants);
             Expense savedExpense = expenseRepository.save(expense);
             log.info("Expense created successfully");
@@ -447,48 +458,48 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
     }
 
-    @Override
-    public List<MemberBalance> getMemberBalances() {
-        try {
-            List<MemberBalance> responses = new ArrayList<>();
-            List<User> users = userRepository.getAllUsers();
-
-            for(User user : users){
-                MemberBalance response = new MemberBalance();
-                response.setName(user.getName());
-                List<Expense> paidExpense = expenseRepository.findPaidExpense(user.getId().toString());
-                BigDecimal totalPaid = BigDecimal.ZERO;
-                for(Expense expense : paidExpense){
-                    totalPaid = totalPaid.add(expense.getAmount());
-                }
-                log.info("total paid {}", totalPaid);
-                response.setTotalPaid(totalPaid);
-
-                BigDecimal totalShare = BigDecimal.ZERO;
-                List<Participant> participants = participantRepository.getParticipants(user.getId().toString());
-                for(Participant participant : participants){
-                    totalShare = totalShare.add(participant.getValue());
-                }
-                response.setTotalShare(totalShare);
-                BigDecimal netBalance = totalPaid.subtract(totalShare);
-                response.setNetBalance(netBalance);
-                if(netBalance.compareTo(BigDecimal.ZERO)==0){
-                    response.setStatus(MemberBalanceStatus.SETTLED);
-                }
-                else if(netBalance.compareTo(BigDecimal.ZERO)>0){
-                    response.setStatus(MemberBalanceStatus.RECEIVE);
-                }
-                else{
-                    response.setStatus(MemberBalanceStatus.OWES);
-                }
-                responses.add(response);
-            }
-            return responses;
-        } catch (Exception e) {
-            log.error("An unexpected error occurred in getMemberBalances method {}", e.getMessage());
-            throw new BadRequestException(e.getMessage());
-        }
-    }
+//    @Override
+//    public List<MemberBalance> getMemberBalances() {
+//        try {
+//            List<MemberBalance> responses = new ArrayList<>();
+//            List<User> users = userRepository.getAllUsers();
+//
+//            for(User user : users){
+//                MemberBalance response = new MemberBalance();
+//                response.setName(user.getName());
+//                List<Expense> paidExpense = expenseRepository.findPaidExpense(user.getId().toString());
+//                BigDecimal totalPaid = BigDecimal.ZERO;
+//                for(Expense expense : paidExpense){
+//                    totalPaid = totalPaid.add(expense.getAmount());
+//                }
+//                log.info("total paid {}", totalPaid);
+//                response.setTotalPaid(totalPaid);
+//
+//                BigDecimal totalShare = BigDecimal.ZERO;
+//                List<Participant> participants = participantRepository.getParticipants(user.getId().toString());
+//                for(Participant participant : participants){
+//                    totalShare = totalShare.add(participant.getValue());
+//                }
+//                response.setTotalShare(totalShare);
+//                BigDecimal netBalance = totalPaid.subtract(totalShare);
+//                response.setNetBalance(netBalance);
+//                if(netBalance.compareTo(BigDecimal.ZERO)==0){
+//                    response.setStatus(MemberBalanceStatus.SETTLED);
+//                }
+//                else if(netBalance.compareTo(BigDecimal.ZERO)>0){
+//                    response.setStatus(MemberBalanceStatus.RECEIVE);
+//                }
+//                else{
+//                    response.setStatus(MemberBalanceStatus.OWES);
+//                }
+//                responses.add(response);
+//            }
+//            return responses;
+//        } catch (Exception e) {
+//            log.error("An unexpected error occurred in getMemberBalances method {}", e.getMessage());
+//            throw new BadRequestException(e.getMessage());
+//        }
+//    }
 
 
 }

@@ -5,10 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class MemberBalance {
+    private UUID userId;
     private String name;
     private BigDecimal totalPaid;
     private BigDecimal totalShare;

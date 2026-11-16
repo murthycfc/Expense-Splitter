@@ -6,18 +6,23 @@ import com.example.ExpenseSplit.dto.request.GroupUpdateRequest;
 import com.example.ExpenseSplit.dto.response.*;
 import com.example.ExpenseSplit.model.Group;
 import com.example.ExpenseSplit.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 public interface GroupService {
     GroupCreationResponse createGroup(GroupCreationRequest request);
     List<GroupMemberResponse> addMember(Group group, AddMemberRequest request);
-    List<GroupResponse> getGroups();
+    Page<GroupResponse> getGroups(String name, Pageable pageable);
     GroupDetailsResponse getGroup(Group group);
     List<GroupMemberResponse> getMembers(Group group);
     GroupUpdateResponse updateGroup(Group group, GroupUpdateRequest request);
     DeleteGroupMemberResponse deleteMember(Group group, User user);
     DeleteGroupResponse deleteGroup(Group group);
-    List<UserResponse> getNonMembers(Group group);
+    List<UserResponse> getNonMembers(Group group, String email);
+    BigDecimal getTotalExpenses(Group group);
+    List<MemberBalance> getMemberBalances(Group group);
 }

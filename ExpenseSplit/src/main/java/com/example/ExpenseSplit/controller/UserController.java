@@ -36,10 +36,10 @@ public class UserController {
         return ResponseEntity.ok(userFacade.getAllUsers(email));
     }
 
-    @GetMapping("/getMemberBalances")
-    public ResponseEntity<List<MemberBalance>> getMemberBalances(){
-        return ResponseEntity.ok(expenseFacade.getMemberBalances());
-    }
+//    @GetMapping("/getMemberBalances")
+//    public ResponseEntity<List<MemberBalance>> getMemberBalances(){
+//        return ResponseEntity.ok(expenseFacade.getMemberBalances());
+//    }
 
     @GetMapping("/getTotoalExpenses")
     public ResponseEntity<BigDecimal> getTotalExpenses(){

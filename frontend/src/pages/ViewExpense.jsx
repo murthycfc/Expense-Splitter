@@ -10,6 +10,7 @@ import Input from "../components/Input";
 import CustomDatePicker from "../components/CustomDatePicker";
 import Select from "../components/Select";
 import AddExpenseValidation from "../validation/AddExpenseValidation";
+import CustomModal from "../components/CustomModal";
 export default function ViewExpense(){
     const {expenseId} = useParams();
     const [expenseData, setExpenseData] = useState();
@@ -19,12 +20,14 @@ export default function ViewExpense(){
     const [showExpenseDeleteModal, setShowExpenseDeleteModal] = useState(false);
     const [updateModal, setUpdateModal] = useState(false);
     const [percentages, setPercentages] = useState({});
+    const [groupId, setGroupId] = useState();
     const navigate = useNavigate();
 
     async function fetchExpense(expenseId) {
         try {
             const response = await getExpense(expenseId);
             setExpenseData(response.data);
+            setGroupId(response.data.groupId)
             console.log(response.data);
             
         } catch (error) {
@@ -122,6 +125,7 @@ export default function ViewExpense(){
             const data = await editExpense(expenseId,request);
             console.log(data);
             setUpdateModal(false);
+            await fetchExpense(expenseId);
 
         } catch (error) {
             setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
@@ -135,8 +139,11 @@ export default function ViewExpense(){
                         className="btn-phonepe"
                         onClick={()=>navigate(`/groups/${expenseData?.groupId}/view`)}
                     >
+                        <div className="d-flex align-items-center gap-1">
                             <ArrowLeft />
-                            Back to Expenses
+                             Back
+                        </div>
+                            
                         
                     </Button>
                 </div>
@@ -168,7 +175,7 @@ export default function ViewExpense(){
                             >
                                 <Button
                                     className="btn-primary"
-                                    onClick={handleExpenseUpdate}
+                                    onClick={()=>navigate(`/groups/${groupId}/expenses/${expenseId}/edit`)}
                                 >
                                     Update
                                 </Button>
@@ -180,7 +187,7 @@ export default function ViewExpense(){
                                 </Button>
                             </div>
                         </div>
-                        <div className="mx-auto mx-md-0">
+                        <div className="mx-3 mx-md-0">
                             <div className="">
                                 <div className="d-flex flex-column flex-md-row align-items-start  justify-content-md-around gap-3 mt-3">
                                 <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
@@ -215,7 +222,7 @@ export default function ViewExpense(){
                                     
                                     <span className="fw-bold">{expenseData?.payerName}</span>
                                 </div>
-                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
+                                <div className="d-flex flex-md-column justify-content-around align-items-center gap-4 gap-md-2">
                                     <div className="d-flex flex-md-column justify-content-start align-items-start align-items-md-center gap-2">
                                         <Split 
                                             color="#864dc2"
@@ -232,12 +239,12 @@ export default function ViewExpense(){
                                 <Card
                                     title="Participants"
                                     icon={<Users style={{color:"864dc2"}}/>}
-                                    className={`mt-3 mx-auto w-100 w-md-100`}
+                                    className={`mt-3 mx-auto  `}
                                 >
                                     <div className="row justify-content-center">
                                         <div className="col-12 col-md-10 mx-auto ">
                                             <div className="table-responsive rounded shadow-sm ">
-                                                <table className="table align-middle table-striped">
+                                                <table className="table align-middle mb-0">
                                                     <colgroup>
                                                         <col className="participant-name-col"/>
                                                         <col className="partcipant-percentage-col"/>
@@ -265,14 +272,10 @@ export default function ViewExpense(){
                                                                     </div>
                                                                 </td>
                                                                 {expenseData?.status==="PERCENTAGE" && (
-                                                                    <td>
-                                                                        {participant.percent ? (
+                                                                    <td> 
+                                                                        {
                                                                             <span>{participant?.percent}%</span>
-                                                                            
-                                                                        ) : (
-                                                                            <span>null</span>
-                                                                        )
-                                                                    }
+                                                                        }
                                                                         
                                                                     </td>
                                                                 )}
@@ -298,18 +301,13 @@ export default function ViewExpense(){
                 </Card>
 
             </div>
-            <Modal
+            <CustomModal
                 show={showExpenseDeleteModal}
                 onHide={()=>{
                     setShowExpenseDeleteModal(false);
                 }}
-                centered
+                title="Delete Expense"
             >
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        Delete Expense
-                    </Modal.Title>
-                </Modal.Header>
                 <Modal.Body>
                     {errors.server && (
                         <div className="alert alert-danger">
@@ -320,24 +318,14 @@ export default function ViewExpense(){
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
-                        className="btn-secondary"
-                        onClick={()=> {
-                            setShowExpenseDeleteModal(false)
-                            setErrors({})
-                        }}
-                    >
-                        Cancel
-                    </Button>
-
-                    <Button
                         className="btn-danger"
                         onClick={()=>confirmDelete()}
                     >
                         Delete
                     </Button>
                 </Modal.Footer>
+            </CustomModal>
 
-            </Modal>
 
             <Modal
                 show={updateModal}
@@ -558,18 +546,7 @@ export default function ViewExpense(){
                                 {errors.server}
                             </div>
                         )}
-                        <Button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={()=>{
-                                setErrors({})
-                                setUpdateModal(false);
-                                setUpdatingExpenseData({});
-                                setPercentages({})
-                            }}
-                        >
-                            Cancel
-                        </Button>
+                        
                         <Button
                             className="btn-phonepe hover-scale"
                         >

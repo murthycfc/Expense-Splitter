@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,8 +36,8 @@ public class GroupController {
     }
 
     @GetMapping("{groupId}/getNonMembers")
-    public ResponseEntity<List<UserResponse>> getNonMembers(@PathVariable UUID groupId){
-        return ResponseEntity.ok(groupFacade.getNonMembers(groupId));
+    public ResponseEntity<List<UserResponse>> getNonMembers(@PathVariable UUID groupId,  @RequestParam(required = false) String email){
+        return ResponseEntity.ok(groupFacade.getNonMembers(groupId, email));
     }
 
     @PostMapping("/{groupId}/addMember")
@@ -46,8 +47,12 @@ public class GroupController {
     }
 
     @GetMapping("/getGroups")
-    public ResponseEntity<List<GroupResponse>> getGroups(){
-        return ResponseEntity.ok(groupFacade.getGroups());
+    public ResponseEntity<Page<GroupResponse>> getGroups(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("updated_at").descending());
+        return ResponseEntity.ok(groupFacade.getGroups(name, pageable));
     }
 
     @GetMapping("/{groupId}/getGroup")
@@ -87,5 +92,14 @@ public class GroupController {
     @DeleteMapping("{groupId}/delete")
     public ResponseEntity<DeleteGroupResponse> deleteGroup(@PathVariable UUID groupId){
         return ResponseEntity.ok(groupFacade.deleteGroup(groupId));
+    }
+
+    @GetMapping("{groupId}/getTotalExpenses")
+    public ResponseEntity<BigDecimal> getTotalExpenses(@PathVariable UUID groupId){
+        return ResponseEntity.ok(groupFacade.getTotalExpenses(groupId));
+    }
+    @GetMapping("{groupId}/getMemberBalances")
+    public ResponseEntity<List<MemberBalance>> getMemberBalances(@PathVariable UUID groupId){
+        return ResponseEntity.ok(groupFacade.getMemberBalances(groupId));
     }
 }

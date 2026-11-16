@@ -31,6 +31,7 @@ export default function Select({label,options=[], value, onChange,placeholder="S
                 placeholder={placeholder}
                 isMulti={multiple}
                 isClearable
+                closeMenuOnSelect={!multiple}
                 {...props}
             >
             </ReactSelect>

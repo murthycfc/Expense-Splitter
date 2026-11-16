@@ -20,9 +20,9 @@ select * from expenses where is_deleted=false
     List<Expense> findAllExpenses();
 
     @Query(value = """
-select * from expenses where paid_by_id=:paidByUser and is_deleted=false
+select * from expenses where group_id=:groupId and  paid_by_id=:payerId and is_deleted=false
 """, nativeQuery = true)
-    List<Expense> findPaidExpense(@Param("paidByUser") String paidByUser);
+    List<Expense> findPaidExpenses(@Param("groupId") String groupId, @Param("payerId") String payerId);
 
 
     @Query(value = """
@@ -32,6 +32,9 @@ select * from expenses where id=:expenseId and is_deleted=false
 
     @Query(value = """
 select * from expenses where group_id=:groupId and is_deleted=false
-""", nativeQuery = true)
+""",
+            countQuery = "select count(*) from expenses where group_id=:groupId and is_deleted=false",
+            nativeQuery = true)
     Page<Expense> findExpensesByGroup(@Param("groupId") String groupId, Pageable pageable);
+
 }

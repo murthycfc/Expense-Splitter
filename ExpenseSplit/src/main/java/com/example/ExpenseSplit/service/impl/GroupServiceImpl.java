@@ -4,18 +4,15 @@ import com.example.ExpenseSplit.dto.request.AddMemberRequest;
 import com.example.ExpenseSplit.dto.request.GroupCreationRequest;
 import com.example.ExpenseSplit.dto.request.GroupUpdateRequest;
 import com.example.ExpenseSplit.dto.response.*;
+import com.example.ExpenseSplit.enums.MemberBalanceStatus;
 import com.example.ExpenseSplit.exception.AccessDeniedException;
 import com.example.ExpenseSplit.exception.BadRequestException;
 import com.example.ExpenseSplit.exception.ResourceNotFoundException;
 import com.example.ExpenseSplit.mappers.GroupMemberMapper;
 import com.example.ExpenseSplit.mappers.GroupsMapper;
 import com.example.ExpenseSplit.mappers.UserMapper;
-import com.example.ExpenseSplit.model.Group;
-import com.example.ExpenseSplit.model.GroupMember;
-import com.example.ExpenseSplit.model.User;
-import com.example.ExpenseSplit.repo.GroupMemberRepository;
-import com.example.ExpenseSplit.repo.GroupRepository;
-import com.example.ExpenseSplit.repo.UserRepository;
+import com.example.ExpenseSplit.model.*;
+import com.example.ExpenseSplit.repo.*;
 import com.example.ExpenseSplit.security.SecurityUtils;
 import com.example.ExpenseSplit.service.api.GroupService;
 import jakarta.transaction.Transactional;
@@ -24,7 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.util.*;
 
 @Setter
@@ -40,6 +41,8 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserMapper userMapper;
+    private final ExpenseRepository expenseRepository;
+    private final ParticipantRepository participantRepository;
 
     @Override
     @Transactional
@@ -134,12 +137,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<GroupResponse> getGroups() {
+    public Page<GroupResponse> getGroups(String name, Pageable pageable) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
-            List<Group> groups = groupRepository.getGroups(currentUser.getId().toString());
+            Page<Group> groups = groupRepository.getGroups(currentUser.getId().toString(), name, pageable);
 
-            return groupsMapper.toGroupResponses(groups);
+            return groups.map(group -> groupsMapper.toGroupResponse(group));
+//            return groupsMapper.toGroupResponses(groups);
         } catch (Exception e) {
             throw new BadRequestException(e.getMessage());
         }
@@ -187,8 +191,12 @@ public class GroupServiceImpl implements GroupService {
                         .orElseThrow(()-> new ResourceNotFoundException("A user not found in group"));
                 users.add(user);
             }
-
-            return userMapper.toGroupMemberResponse(users);
+            log.info("members {}", userMapper.toGroupMemberResponse(users));
+            List<GroupMemberResponse> members = userMapper.toGroupMemberResponse(users);
+            for(GroupMemberResponse response : members){
+                log.info(response.getEmail());
+            }
+            return members;
         }
         catch (ResourceNotFoundException | BadRequestException e){
             log.error("An error occurred in getMembers {}", e.getMessage());
@@ -250,13 +258,13 @@ public class GroupServiceImpl implements GroupService {
             response.setMessage("User removed from Group");
             return response;
         }
-        catch (ResourceNotFoundException | BadRequestException e){
+        catch (ResourceNotFoundException | BadRequestException | AccessDeniedException e){
             log.error("An error occurred in deleteMember {}", e.getMessage());
             throw e;
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in deleteMember {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new BadRequestException(e.getMessage());
         }
 
     }
@@ -288,14 +296,21 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<UserResponse> getNonMembers(Group group) {
+    public List<UserResponse> getNonMembers(Group group, String email) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
             Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
             if(memberOfGroup==0){
                 throw new BadRequestException("You don't have access to fetch non this group");
             }
-            List<User> users = userRepository.getAllUsers();
+            List<User> users ;
+            if(email==null || email.isBlank()){
+                users = userRepository.getAllUsers();
+            }
+            else{
+                users = userRepository.searchUsersByEmail(email);
+            }
+
             List<User> nonMembers = new ArrayList<>();
             for(User user : users){
                 if(groupMemberRepository.isMemberOfGroup(group.getId().toString(), user.getId().toString())==1){
@@ -307,8 +322,92 @@ public class GroupServiceImpl implements GroupService {
             }
             return userMapper.toUserResponse(nonMembers);
         }
+        catch (BadRequestException e){
+            log.error("An error occurred getNonMembers {}", e.getMessage());
+            throw e;
+        }
         catch (Exception e) {
-            log.info("An error occurred");
+            log.info("An unexpected error occurred getNonMembers {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalExpenses(Group group) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            if(memberOfGroup==0){
+                throw new BadRequestException("You don't have access to fetch this group details");
+            }
+
+            BigDecimal totalExpense = BigDecimal.ZERO;
+            for(Expense expense : group.getExpenses()){
+                totalExpense = totalExpense.add(expense.getAmount());
+            }
+            return totalExpense;
+        }
+        catch (BadRequestException e){
+            log.error("An error occurred in getTotalExpenses {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in getTotalExpenses {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MemberBalance> getMemberBalances(Group group) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            if(memberOfGroup==0){
+                throw new BadRequestException("You don't have access to fetch this group member balances");
+            }
+            List<GroupMember> groupMembers = groupMemberRepository.findMembersByGroupId(group.getId().toString());
+            List<MemberBalance> memberBalances = new ArrayList<>();
+            for(GroupMember groupMember : groupMembers){
+                MemberBalance memberBalance = new MemberBalance();
+                User user = groupMember.getUser();
+                memberBalance.setName(user.getName());
+                memberBalance.setUserId(user.getId());
+                BigDecimal paidAmount = BigDecimal.ZERO;
+                List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), user.getId().toString());
+                for(Expense expense : paidExpenses){
+                    paidAmount = paidAmount.add(expense.getAmount());
+                }
+                memberBalance.setTotalPaid(paidAmount);
+
+
+                List<Participant> participants = participantRepository.getParticipants(group.getId().toString(), user.getId().toString());
+                BigDecimal totalShare = BigDecimal.ZERO;
+                for(Participant participant : participants){
+                    totalShare = totalShare.add(participant.getValue());
+                }
+                memberBalance.setTotalShare(totalShare);
+                BigDecimal netBalance = paidAmount.subtract(totalShare);
+                memberBalance.setNetBalance(netBalance);
+
+                if(netBalance.compareTo(BigDecimal.ZERO)>0){
+                    memberBalance.setStatus(MemberBalanceStatus.RECEIVE);
+                }
+                else if(netBalance.compareTo(BigDecimal.ZERO)<0) {
+                    memberBalance.setStatus(MemberBalanceStatus.OWES);
+                }
+                else {
+                    memberBalance.setStatus(MemberBalanceStatus.SETTLED);
+                }
+                memberBalances.add(memberBalance);
+            }
+            return memberBalances;
+        }
+        catch (BadRequestException e){
+            log.error("An error occurred getMemberBalances {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred getMemberBalances {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
     }

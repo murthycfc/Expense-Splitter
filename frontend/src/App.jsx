@@ -10,6 +10,7 @@ import Groups from "./pages/Groups";
 import ViewGroup from "./pages/ViewGroup";
 import ViewExpense from "./pages/ViewExpense";
 import AuthLoader from "./loader/authLoader";
+import Expense from "./pages/CreateExpense";
 
 function App() {
   const router = createBrowserRouter([
@@ -25,6 +26,14 @@ function App() {
         {
           path: "groups/:groupId/view",
           element: <ViewGroup />
+        },
+        {
+          path:"groups/:groupId/createExpense",
+          element: <Expense />
+        },
+        {
+          path:"groups/:groupId/expenses/:expenseId/edit",
+          element: <EditExpense />
         },
         {
           path:"expenses/:expenseId/view",

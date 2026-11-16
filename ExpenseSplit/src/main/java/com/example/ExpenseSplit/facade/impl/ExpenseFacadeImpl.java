@@ -54,10 +54,6 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
         }
     }
 
-    @Override
-    public List<MemberBalance> getMemberBalances() {
-        return expenseService.getMemberBalances();
-    }
 
     @Override
     public BigDecimal getTotalExpenses() {

@@ -19,8 +19,8 @@ export async function getProfile() {
 
 
 
-export async function loadGroups() {
-    const response = await apiClient.get(`/api/groups/getGroups`);
+export async function loadGroups(name="",page=0, size=10) {
+    const response = await apiClient.get(`/api/groups/getGroups`,{params:{name,page,size}});
     return response.data;
 }
 
@@ -49,6 +49,16 @@ export async function getExpenses(groupId, page=0, size=10){
     return response.data;
 }
 
+export async function getTotalExpenses(groupId) {
+    const response = await apiClient.get(`/api/groups/${groupId}/getTotalExpenses`);
+    return response;
+}
+
+export async function getMemberBalances(groupId) {
+    const response = await apiClient.get(`/api/groups/${groupId}/getMemberBalances`);
+    return response;
+}
+
 export async function getExpense(expenseId) {
     const response = await apiClient.get(`/api/expenses/getExpense/${expenseId}`)
     return response;
@@ -66,8 +76,8 @@ export async function addExpense(groupId,request) {
     return response.data;
 }
 
-export async function getNonMembers(groupId) {
-    const response = await apiClient.get(`/api/groups/${groupId}/getNonMembers`);
+export async function getNonMembers(groupId, email) {
+    const response = await apiClient.get(`/api/groups/${groupId}/getNonMembers`,{params:{email}});
     return response.data;
 }
 
@@ -82,10 +92,10 @@ export async function getAllExpenses() {
     return response.data;
 }
 
-export async function getMemberBalances() {
-    const response = await apiClient.get(`${BASE_URL}/api/getMemberBalances`);
-    return response.data;
-}
+// export async function getMemberBalances() {
+//     const response = await apiClient.get(`${BASE_URL}/api/getMemberBalances`);
+//     return response.data;
+// }
 
 export async function getTotoalExpenses() {
     const response = await apiClient.get(`${BASE_URL}/api/getTotoalExpenses`);
@@ -109,6 +119,12 @@ export async function editExpense(expenseId, request) {
     );
     return response.data;
 }
+
+export async function removeMember(groupId, userId) {
+    const response = await apiClient.delete(`/api/groups/${groupId}/delete/${userId}`);
+    return response.data;
+}
+
 
 // export async function getExpense(expenseId) {
 //     const response = await apiClient.get(`${BASE_URL}/api/getExpense/${expenseId}`)
