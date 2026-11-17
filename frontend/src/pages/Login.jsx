@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import LoginValidation from "../validation/LoginValidation";
 import "../css/Login.css";
 import bgImage from "../assets/bg123.png";
+import { toast } from "react-toastify";
 export default function Login(){
     const navigate = useNavigate();
 
@@ -44,9 +45,12 @@ export default function Login(){
             const data = await login(loginData);
             localStorage.setItem("role", data.role);
             localStorage.setItem("token", data.token);
+            localStorage.setItem("id", data.id);
             navigate("/");
+            toast.success("Logged in successfully!")
         } catch (error) {
-            setErros({server:error?.response?.data?.message ?? "Something went wrong"})
+            toast.error(error?.response?.data?.message ?? "Something went wrong");
+            // setErros({server:error?.response?.data?.message ?? "Something went wrong"})
         }
     }
 

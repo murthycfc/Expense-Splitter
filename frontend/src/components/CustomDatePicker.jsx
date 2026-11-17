@@ -19,6 +19,7 @@ export default function CustomDatePicker({label, id,error, required, value, ...p
                 id={id}
                 dateFormat="yyyy-MM-dd"
                 className="form-control"
+                maxDate={new Date()}
                 {...props}
             />
             {error && (

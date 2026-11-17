@@ -1,6 +1,8 @@
 package com.example.ExpenseSplit.repo;
 
 import com.example.ExpenseSplit.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +40,18 @@ select * from users where id=:id and is_deleted=false
 select * from users where email=:email and is_deleted=false
 """, nativeQuery = true)
     Optional<User> findByEmail(String email);
+
+    @Query(value = """
+select u.* from users u where (:email is null or lower(u.email) like lower(concat('%',:email, '%')) or lower(u.name) like lower(concat('%',:email,'%')))
+    and not exists(
+        select 1 from group_members gm where gm.group_id=:groupId and gm.user_id=u.id and gm.is_deleted=false
+    )
+""",
+    countQuery = """
+            select count(*) from users u  where (:email is null or lower(u.email) like lower(concat('%',:email, '%')) or lower(u.name) like lower(concat('%',:email,'%')))
+    and not exists(
+        select 1 from group_members gm where gm.group_id=:groupId and gm.user_id=u.id and gm.is_deleted=false
+            )""",
+    nativeQuery = true)
+    Page<User> findNonMembers(@Param("groupId") String groupId, @Param("email") String email, Pageable pageable);
 }

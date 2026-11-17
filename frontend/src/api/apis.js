@@ -76,8 +76,8 @@ export async function addExpense(groupId,request) {
     return response.data;
 }
 
-export async function getNonMembers(groupId, email) {
-    const response = await apiClient.get(`/api/groups/${groupId}/getNonMembers`,{params:{email}});
+export async function getNonMembers(groupId, email, page=0, size=8) {
+    const response = await apiClient.get(`/api/groups/${groupId}/getNonMembers`,{params:{email, page, size}});
     return response.data;
 }
 

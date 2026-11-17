@@ -7,6 +7,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { Eye, EyeOff } from "lucide-react";
 import bgImage from "../assets/bg123.png";
+import { toast } from "react-toastify";
 export default function Registration(){
     const navigate = useNavigate();
 
@@ -49,9 +50,12 @@ export default function Registration(){
             const data = await register(registerData);
             localStorage.setItem("role", data.role);
             localStorage.setItem("token", data.token);
+            localStorage.setItem("id", data.id);
             navigate("/");
+            toast.success("Registered successfully!")
         } catch (error) {
-            setErros({server:error?.response?.data?.message ?? "Something went wrong"})
+            toast.error(error?.response?.data?.message ?? "Something went wrong");
+            // setErros({server:error?.response?.data?.message ?? "Something went wrong"})
         }
     }
 

@@ -6,6 +6,7 @@ import Input from "./Input";
 import CustomDatePicker from "./CustomDatePicker";
 import Select from "./Select";
 import Button from "./Button";
+import { toast } from "react-toastify";
 
 export default function ExpenseCompoent({isEdit}){
     
@@ -87,10 +88,34 @@ export default function ExpenseCompoent({isEdit}){
             ...prev,
             [key]: value
         }))
+        if(key==="status"){
+            distributeEqually(expenseData.participants);
+        }
         setErrors(prev =>({
             ...prev,
             [key]: ""
         }))
+    }
+
+    function distributeEqually(participantIds){
+        const totalPercentage = 10000;
+        const count = participantIds.length;
+
+        if(count===0){
+            setPercentages({});
+            return ;
+        }
+
+        const equalShare = Math.floor(totalPercentage/count);
+        const remainder = totalPercentage%count;
+
+        const updatedPercentages = {};
+
+        participantIds.forEach((id, index)=>{
+            const percentage = equalShare + (index===0 ? remainder : 0);
+            updatedPercentages[id] = (percentage/100).toFixed(2);
+        });
+        setPercentages(updatedPercentages);
     }
 
     async function handleSubmit(e){
@@ -117,13 +142,14 @@ export default function ExpenseCompoent({isEdit}){
             if(isEdit){
                 const data = await editExpense(expenseId, request);
                 navigate(`/expenses/${expenseId}/view`)
+                toast.success("Expense updated successfully!")
             }
             else {
                 const data = await addExpense(groupId,request);
                 navigate(`/groups/${groupId}/view`)
+                toast.success("Expense created successfully!")
             }
 
-            
             setExpenseData({
                 description:"",
                 amount:0,
@@ -136,6 +162,9 @@ export default function ExpenseCompoent({isEdit}){
             setErrors({server:error?.response?.data?.message})
         }
     }
+    const totalPercentage = expenseData.participants.reduce(
+        (total, id) => total + (Number(percentages[id]) || 0),0);
+
     return(
         <div >
                 <div className="mb-4 fw-bold fs-4">
@@ -163,6 +192,7 @@ export default function ExpenseCompoent({isEdit}){
                             type="number"
                             label="Amount"
                             required
+                            min={1}
                             value={expenseData.amount}
                             onChange={handleChange}
                             error={errors?.amount}
@@ -253,6 +283,8 @@ export default function ExpenseCompoent({isEdit}){
                                         ...prev,
                                         participants: values
                                     }))
+                                    distributeEqually(values)
+
                                     setErrors(prev =>({
                                         ...prev,
                                         participants: ""
@@ -274,13 +306,15 @@ export default function ExpenseCompoent({isEdit}){
                                     
                                     <table className="table align-middle mb-0">
                                         <colgroup>
-                                                <col style={{width: "85%"}}/>
-                                                <col style={{width: "15%"}}/>
+                                                <col style={{width: "50%"}}/>
+                                                <col style={{width: "25%"}}/>
+                                                <col style={{width: "25%"}}/>
                                             </colgroup>
                                         <thead className="table-light">
                                             <tr>
                                                 <td className="fw-bold">Name</td>
                                                 <td className="fw-bold">Percentage</td>
+                                                <td className="fw-bold">Amount</td>
                                             </tr>
                                         
                                         </thead>
@@ -298,14 +332,19 @@ export default function ExpenseCompoent({isEdit}){
                                                                 <Input 
                                                                     type="number"
                                                                     min="0"
-                                                                    max="100"
+                                                                    max={100}
                                                                     className="form-control"
                                                                     step="0.01" 
-                                                                    value={percentages[id] || ""}
+                                                                    value={percentages[id] ?? ""}
                                                                     onChange={(e)=>{
+                                                                        const value = e.target.value;
+                                                                        const newTotalPercentage = totalPercentage - (Number(percentages[id]) || 0) + (Number(value)||0);
+                                                                        if(Number(value)>100 || newTotalPercentage > 100){
+                                                                            return;
+                                                                        }
                                                                         setPercentages(prev=>({
                                                                             ...prev,
-                                                                            [id]: e.target.value
+                                                                            [id]: value
                                                                         }))
                                                                         setErrors(prev=>({
                                                                             ...prev,
@@ -317,6 +356,11 @@ export default function ExpenseCompoent({isEdit}){
                                                                 <span className="mt-2">%</span>
                                                             </div>
                                                         </td>
+                                                        <td>
+                                                            <div>
+                                                                <span>{(expenseData.amount*(percentages[id]/100)).toFixed(2)}</span>
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 )
                                             })}
@@ -324,7 +368,8 @@ export default function ExpenseCompoent({isEdit}){
                                         <tfoot>
                                             <tr>
                                                 <td className="fw-semibold px-3">Total</td>
-                                                <td>{Object.values(percentages).reduce((total, currVal)=> total+ (Number(currVal) || 0),0)}</td>
+                                                <td>{totalPercentage.toFixed(2)}</td>
+                                                <td> {(Number(expenseData.amount || 0) * (totalPercentage / 100)).toFixed(2)}</td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -334,14 +379,18 @@ export default function ExpenseCompoent({isEdit}){
                     </div>
                     
                     {errors?.server && (
-                        <div className="alert alert-danger">
-                            {errors.server}
+                        <div className="d-flex justify-content-center">
+                            <div className="alert alert-danger mt-3 w-50 text-center">
+                                <span>{errors.server}</span>
+                            </div>
                         </div>
+                        
                     )}
                     <div className="d-flex justify-content-end gap-2 mt-3">
                         <Button 
                             className="btn-secondary hover-scale"
                             onClick={()=> navigate(-1)}
+                            type="button"
                         >
                             Cancel
                         </Button>

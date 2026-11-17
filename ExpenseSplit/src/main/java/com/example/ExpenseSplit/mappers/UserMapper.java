@@ -14,5 +14,5 @@ public interface UserMapper {
     GroupMemberResponse toGroupMemberResponse(User user);
     List<GroupMemberResponse> toGroupMemberResponse(List<User> users);
 
-    List<UserResponse> toUserResponse(List<User> users);
+    UserResponse toUserResponse(User user);
 }

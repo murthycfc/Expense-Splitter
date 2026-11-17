@@ -35,9 +35,15 @@ public class GroupController {
         return ResponseEntity.ok(groupFacade.createGroup(request));
     }
 
-    @GetMapping("{groupId}/getNonMembers")
-    public ResponseEntity<List<UserResponse>> getNonMembers(@PathVariable UUID groupId,  @RequestParam(required = false) String email){
-        return ResponseEntity.ok(groupFacade.getNonMembers(groupId, email));
+    @GetMapping("/{groupId}/getNonMembers")
+    public ResponseEntity<Page<UserResponse>> getNonMembers(
+            @PathVariable UUID groupId,
+            @RequestParam(required = false) String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(groupFacade.getNonMembers(groupId, email, pageable));
     }
 
     @PostMapping("/{groupId}/addMember")

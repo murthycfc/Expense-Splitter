@@ -12,6 +12,7 @@ import java.util.UUID;
 public class MemberBalance {
     private UUID userId;
     private String name;
+    private String email;
     private BigDecimal totalPaid;
     private BigDecimal totalShare;
     private BigDecimal netBalance;

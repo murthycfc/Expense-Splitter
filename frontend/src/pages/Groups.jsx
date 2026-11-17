@@ -11,6 +11,7 @@ import GroupValidation from "../validation/addGroupValidation";
 import DateFormatter from "../utils/DateFormatter";
 import CustomModal from "../components/CustomModal";
 import { FaUser, FaUsers } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function Groups(){
     const [groups, setGroups] = useState([]);
@@ -75,6 +76,7 @@ export default function Groups(){
         setupdatingGroupId(null);
         setErrors({});
         setShowGroupModal(true);
+        
     }
 
     async function handleGroupSubmit(e) {
@@ -92,6 +94,8 @@ export default function Groups(){
                 const data = await updateGroup(updatingGroupId,group);
                 setGroups(prev => prev.map(item => 
                     item.id===updatingGroupId ? data : item));
+                toast.success("Group updated successfully")
+                console.log("updated");
             }
             else {
                 const data = await createGroup(group);
@@ -99,6 +103,7 @@ export default function Groups(){
                     data,
                     ...prev
                 ]));
+                toast.success("Group created successfully")
             }
             
             setShowGroupModal(false);
@@ -167,12 +172,12 @@ export default function Groups(){
     return (
         <div className="container my-4">
             <div className="d-flex flex-column gap-3">
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-center ">
                     <div className="d-flex align-items-center gap-3">
                         <div style={{backgroundColor:"#5F259F"}} className="text-white p-2 rounded-3">
                             <FaUsers size={30} />
                         </div>
-                        <div>
+                        <div className="">
                             <h5 className=" mb-0 fw-bold">Groups</h5>
                             <span className="text-muted small">
                                 Manage your groups and keep your expenses organized
@@ -214,18 +219,23 @@ export default function Groups(){
                     <Card>
                         {groups.length === 0 && (
                             <div className="text-center py-3">
-                                <div 
+                                {/* <div 
                                     className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                                     style={{ width: "56px", height: "56px", backgroundColor: "#f3e8ff", color: "#5F259F" }}
                                 >
                                     <FaUsers size={26} />
-                                </div>
-                                <h6 className="fw-bold mb-1">No groups found</h6>
-                                <p className="text-muted small mb-0">
+                                </div> */}
+                                {/* <h6 className="fw-bold mb-1">No groups found</h6> */}
+                                {/* <p className="text-muted small mb-0">
                                     {groupName 
                                         ? `No groups matched "${groupName}". Try a different search.` 
                                         : "You don't have any groups yet. Click 'Create Group' to get started."}
-                                </p>
+                                </p> */}
+                                <img 
+                                    src="/no_groups.png"
+                                    alt="No Groups Found"
+                                    style={{ maxWidth: "300px" }}
+                                />
                             </div>
                         )}
                         <div className="row g-3">
@@ -344,9 +354,9 @@ export default function Groups(){
                                 <p className="text-muted small mt-2">Loading expenses...</p>
                             </div>
                         )}
-                        {!hasMore && groups.length > 0 && (
+                        {!hasMore && groups.length > 0 && page>0 && (
                             <p className="text-center text-muted py-3">
-                                You have reached the end of the expenses.
+                                You have reached the end of the groups.
                             </p>
                         )}
                     </Card>

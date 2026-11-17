@@ -296,31 +296,21 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<UserResponse> getNonMembers(Group group, String email) {
+    public Page<UserResponse> getNonMembers(Group group, String email, Pageable pageable) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
             Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
             if(memberOfGroup==0){
                 throw new BadRequestException("You don't have access to fetch non this group");
             }
-            List<User> users ;
+
             if(email==null || email.isBlank()){
-                users = userRepository.getAllUsers();
-            }
-            else{
-                users = userRepository.searchUsersByEmail(email);
+                email = null;
             }
 
-            List<User> nonMembers = new ArrayList<>();
-            for(User user : users){
-                if(groupMemberRepository.isMemberOfGroup(group.getId().toString(), user.getId().toString())==1){
-                    continue;
-                }
-                else{
-                    nonMembers.add(user);
-                }
-            }
-            return userMapper.toUserResponse(nonMembers);
+            Page<User> nonMembers = userRepository.findNonMembers(group.getId().toString(), email, pageable);
+
+            return nonMembers.map(user ->userMapper.toUserResponse(user));
         }
         catch (BadRequestException e){
             log.error("An error occurred getNonMembers {}", e.getMessage());
@@ -371,6 +361,7 @@ public class GroupServiceImpl implements GroupService {
                 MemberBalance memberBalance = new MemberBalance();
                 User user = groupMember.getUser();
                 memberBalance.setName(user.getName());
+                memberBalance.setEmail(user.getEmail());
                 memberBalance.setUserId(user.getId());
                 BigDecimal paidAmount = BigDecimal.ZERO;
                 List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), user.getId().toString());

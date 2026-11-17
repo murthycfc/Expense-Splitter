@@ -22,7 +22,7 @@ public interface GroupFacade {
     GroupUpdateResponse updateGroup(UUID groupId, GroupUpdateRequest request);
     DeleteGroupMemberResponse deleteMember(UUID groupId, UUID userId);
     DeleteGroupResponse deleteGroup(UUID groupId);
-    List<UserResponse> getNonMembers(UUID groupId, String email);
+    Page<UserResponse> getNonMembers(UUID groupId, String email, Pageable pageable);
     BigDecimal getTotalExpenses(UUID groupId);
     List<MemberBalance> getMemberBalances(UUID groupId);
 }

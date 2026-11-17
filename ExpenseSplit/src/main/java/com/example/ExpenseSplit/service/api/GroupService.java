@@ -22,7 +22,7 @@ public interface GroupService {
     GroupUpdateResponse updateGroup(Group group, GroupUpdateRequest request);
     DeleteGroupMemberResponse deleteMember(Group group, User user);
     DeleteGroupResponse deleteGroup(Group group);
-    List<UserResponse> getNonMembers(Group group, String email);
+    Page<UserResponse> getNonMembers(Group group, String email, Pageable pageable);
     BigDecimal getTotalExpenses(Group group);
     List<MemberBalance> getMemberBalances(Group group);
 }

@@ -11,6 +11,8 @@ import ViewGroup from "./pages/ViewGroup";
 import ViewExpense from "./pages/ViewExpense";
 import AuthLoader from "./loader/authLoader";
 import Expense from "./pages/CreateExpense";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const router = createBrowserRouter([
@@ -39,19 +41,6 @@ function App() {
           path:"expenses/:expenseId/view",
           element: <ViewExpense />
         },
-        // {
-          
-        //   element: <Home />
-        // },
-        // {
-        //   path: "/balances" ,
-        //   element: <Balances />
-        // },
-        // {
-        //   path: `/expense/edit/:expenseId`,
-        //   element: <EditExpense />
-        // }
-
       ],
       
     },
@@ -64,7 +53,21 @@ function App() {
       element: <Registration />
     }
   ])
-  return <RouterProvider router={router}/>
+  return (
+    <>
+      <RouterProvider router={router}/>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+    />
+    </>
+  ) 
 }
 
 export default App

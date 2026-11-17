@@ -9,6 +9,7 @@ import Modal from "react-bootstrap/Modal";
 import {  FaUsers } from "react-icons/fa";
 import Card from "./Card";
 import CustomModal from "./CustomModal";
+import { toast } from "react-toastify";
 // import '../App.css'
 
 export default function Navbar() {
@@ -43,6 +44,7 @@ export default function Navbar() {
             console.log(data);
             setToken(null);
             navigate("/login")
+            toast.success("logged out successfully")
 
         } catch (error) {
             setError(error?.response?.data?.message);
@@ -137,10 +139,10 @@ export default function Navbar() {
                             Balances
                         </NavLink> */}
                         <Button
-                            className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold p-0"
+                            className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold p-0 gap-1"
                             onClick={handleProfile}
                         >
-                            {/* <CircleUserRound size={32}/> */}
+                            <CircleUserRound />
                             <span>Profile</span>
                         </Button>
                         {token ? (
@@ -175,7 +177,7 @@ export default function Navbar() {
                 }
             >
                 <Modal.Body>
-                    <p className="text-center">Are you sure want to logout!</p>
+                    <p className="text-center mb-0 py-3">Are you sure want to logout!</p>
                 </Modal.Body>
 
                 <Modal.Footer>
@@ -237,7 +239,8 @@ export default function Navbar() {
                                             <tr>
                                                 <td>
                                                     <div className="d-flex align-items-center gap-1">
-                                                        <User size={20}/>
+                                                        {/* <User size={20}/> */}
+                                                        <CircleUserRound size={20}/>
                                                         <span>Name</span>
                                                     </div>
                                                 </td>

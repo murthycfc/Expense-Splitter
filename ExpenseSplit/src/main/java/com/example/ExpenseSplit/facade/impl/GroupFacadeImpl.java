@@ -142,11 +142,11 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<UserResponse> getNonMembers(UUID groupId, String email) {
+    public Page<UserResponse> getNonMembers(UUID groupId, String email, Pageable pageable) {
         try {
             Group group = groupRepository.findByGroupId(groupId.toString())
                     .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
-            return groupService.getNonMembers(group, email);
+            return groupService.getNonMembers(group, email, pageable);
         }
         catch (ResourceNotFoundException e){
             log.error("An error occurred in getNonMembers {}", e.getMessage());
