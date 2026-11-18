@@ -16,4 +16,5 @@ public class GroupResponse {
     private String name;
     private String description;
     private LocalDateTime createdAt;
+    private long totalMembers;
 }

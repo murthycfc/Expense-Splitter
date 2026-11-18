@@ -64,25 +64,17 @@ export default function Navbar() {
                 </div>
 
                 <div className="d-none d-sm-flex align-items-center gap-3 ms-auto">
-                    {/* <NavLink
-                        to="/" 
-                        className={({ isActive }) => `nav-link  ${isActive ? 'text-white text-decoration-underline ' : 'text-white opacity-50'}`}
-                    >
-                        Members & Expenses
-                    </NavLink>
-
-                    <NavLink 
-                        to="/balances" 
-                        className={({ isActive }) => `nav-link  ${isActive ? 'text-white text-decoration-underline' : 'text-white opacity-50'}`}
-                    >
-                        Balances
-                    </NavLink> */}
-
                     <Button
                         className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold p-0"
                         onClick={handleProfile}
                     >
-                         <CircleUserRound size={32}/>
+                         {/* <CircleUserRound size={32}/> */}
+                         <img 
+                            src="/profile12.png"
+                            style={{
+                                maxWidth:"50px"
+                            }}
+                         />
                     </Button>
 
 
@@ -119,25 +111,7 @@ export default function Navbar() {
 
                 {menuOpen && (
                     <div className="d-flex d-sm-none flex-column align-items-center gap-2 mt-2 w-100">
-                        
-                        {/* <NavLink
-                            to="/"
-                            onClick={()=>setMenuOpen(prev =>!prev)}
-                            className={({isActive})=>
-                                `nav-link ${isActive ? "text-white text-decoration-underline" : "text-white opacity-50"} `
-                            }
-                        >
-                            Members & Expenses
-                        </NavLink> */}
-                        {/* <NavLink
-                            to="/balances"
-                            onClick={()=>setMenuOpen(prev =>!prev)}
-                            className={({isActive})=>
-                                `nav-link ${isActive ? "text-white text-decoration-underline" : "text-white opacity-50"} `
-                            }
-                        >
-                            Balances
-                        </NavLink> */}
+
                         <Button
                             className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold p-0 gap-1"
                             onClick={handleProfile}

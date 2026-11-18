@@ -3,7 +3,7 @@ import ExpenseCompoent from "../components/ExpenseCompoent";
 
 export default function CreateExpense(){
     return(
-        <div className="m-5">
+        <div className="m-0 m-md-5">
             
             <Card>
                 <ExpenseCompoent  isEdit={false} />

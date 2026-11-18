@@ -174,26 +174,36 @@ export default function Groups(){
             <div className="d-flex flex-column gap-3">
                 <div className="d-flex justify-content-between align-items-center ">
                     <div className="d-flex align-items-center gap-3">
-                        <div style={{backgroundColor:"#5F259F"}} className="text-white p-2 rounded-3">
+                        {/* <div style={{backgroundColor:"#5F259F"}} className="text-white p-2 rounded-3">
                             <FaUsers size={30} />
+                        </div> */}
+                        <div>
+                            {/* <img 
+                                src="/groups.png"
+                                style={{maxWidth:"100px"}}
+                            /> */}
+                            <img 
+                                src="/groupsimg.png"
+                                style={{maxWidth:"150px"}}
+                            />
                         </div>
                         <div className="">
                             <h5 className=" mb-0 fw-bold">Groups</h5>
-                            <span className="text-muted small">
+                            <span className="text-muted small d-none d-md-block">
                                 Manage your groups and keep your expenses organized
                             </span>
                         </div>
                     </div>
                     <Button 
-                        className="btn-phonepe hover-scale d-inline-flex align-items-center gap-1"
+                        className="btn-phonepe hover-scale d-inline-flex align-items-center gap-1 d-md-none"
                         onClick={handleCreateGroup}
                     >
                         <PlusIcon/> Create Group
                     </Button>
                 </div>
-                    <Card>
+                    {/* <Card> */}
                         <div className="row g-3">
-                            <div className="col-8 col-md-10 ">
+                            <div className="col-8 col-md-6 ">
                                 <Input 
                                     id="name"
                                     type="text"
@@ -213,8 +223,16 @@ export default function Groups(){
                                     Search
                                 </Button>
                             </div>
+                            <div className="d-none d-md-block col-md-4 text-md-end">
+                                    <Button 
+                                        className="btn-phonepe hover-scale d-inline-flex align-items-center gap-1 me-1"
+                                        onClick={handleCreateGroup}
+                                    >
+                                        <PlusIcon/> Create Group
+                                    </Button>
+                            </div>
                         </div>
-                    </Card>
+                    {/* </Card> */}
                     
                     <Card>
                         {groups.length === 0 && (
@@ -240,12 +258,13 @@ export default function Groups(){
                         )}
                         <div className="row g-3">
                             {groups.map((group) => (
-                                <div className="col-12 col-md-6 col-xl-3" key={group.id}>
+                                // console.log(group.totalMembers)
+                                <div className="col-12 col-md-6 col-xl-4" key={group.id}>
                                     <Card
                                         onClick={() => handleView(group.id)}
                                         className={`group-card h-100  ${activeMenu===group.id ? "active-dropdown-card": ""}` }
                                         style={{
-                                            backgroundColor:"#FCFAFF"
+                                            background: "#FCFAFF"
                                         }}
                                     >
                                         <div className="d-flex flex-column h-100">
@@ -260,7 +279,13 @@ export default function Groups(){
                                                             fontSize: "20px"
                                                         }}
                                                     >
-                                                        {group.name?.trim().charAt(0).toUpperCase()}
+                                                        {/* {group.name?.trim().charAt(0).toUpperCase()} */}
+                                                        <img 
+                                                            src="/kedarnath.png"
+                                                            style={{
+                                                                maxWidth:"50px"
+                                                            }}
+                                                        />
                                                     </div>
 
                                                     <div className="d-flex flex-column">
@@ -271,8 +296,9 @@ export default function Groups(){
                                                             className="text-muted mb-0 group-description"
                                                             title={group.description}
                                                         >
-                                                            {group.description || "No description"}
+                                                            {group.description || ""}
                                                         </p>
+                                                        
                                                         
                                                     </div>
 
@@ -329,7 +355,11 @@ export default function Groups(){
 
                                             </div>
 
-                                            <div className="flex-grow-1 mb-0">
+                                            <div className="d-flex flex-column gap-2 mb-0">
+                                                <div className="d-flex gap-2">
+                                                    <span>Total Members:</span>
+                                                    <span>{group.totalMembers}</span>
+                                                </div>
                                                  <small className="text-muted d-flex align-items-center gap-1 flex-wrap">
                                                     <span>Created on</span>
                                                     <DateFormatter

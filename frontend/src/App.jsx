@@ -13,6 +13,7 @@ import AuthLoader from "./loader/authLoader";
 import Expense from "./pages/CreateExpense";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GroupSummary from "./pages/GroupSummary";
 
 function App() {
   const router = createBrowserRouter([
@@ -29,6 +30,10 @@ function App() {
           path: "groups/:groupId/view",
           element: <ViewGroup />
         },
+        // {
+        //   path:"groups/:groupId/summary",
+        //   element: <GroupSummary />
+        // },
         {
           path:"groups/:groupId/createExpense",
           element: <Expense />

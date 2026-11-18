@@ -14,6 +14,7 @@ import { FaUsers } from "react-icons/fa";
 import CustomModal from "../components/CustomModal";
 import SummaryCard from "../components/SummaryCard";
 import { toast } from "react-toastify";
+import BalanceChart from "../components/BalanceChart"
 
 export default function ViewGroup(){
     const [groupInfo, setGroupInfo] = useState();
@@ -53,6 +54,9 @@ export default function ViewGroup(){
     const [activeMenu, setActiveMenu] = useState(null);
 
     const observerTarget = useRef(null);
+    
+
+    const memberBalancesRef = useRef(null);
 
 
     const {groupId} = useParams();
@@ -182,6 +186,13 @@ export default function ViewGroup(){
         }))
     }
 
+    function scrollToMemberBalances(){
+        memberBalancesRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        })
+    }
+
     async function handleSubmit(e){
         e.preventDefault();
         setErrors({});
@@ -248,7 +259,8 @@ export default function ViewGroup(){
             setMembers(prevMembers => prevMembers.filter(member => member.id!==data.userId))
             setMemberBalances(prevMemberBalances => prevMemberBalances.filter(memberBalance => memberBalance.userId!==userId));
         } catch (error) {
-            setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
+            toast.error(error?.response?.data?.message ?? "Something went wrong")
+            // setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
         }
     }
 
@@ -260,7 +272,7 @@ export default function ViewGroup(){
             >
                 <ArrowLeft /> Back
             </Button>
-            <Card>
+            {/* <Card> */}
                 <Card style={{backgroundColor: "#7d35c9"}}>
                     <div className="text-white px-md-1" >
                         <div className="row align-items-center gx-2 gx-md-5">
@@ -281,44 +293,101 @@ export default function ViewGroup(){
                                     {groupInfo?.description && (
                                         <p className="mb-0 ">{groupInfo?.description}</p>
                                     )}
-                                    <div className="d-flex align-items-center gap-1">
+                                    <div 
+                                        className="d-flex align-items-center gap-1">
                                         <span className="d-inline d-md-none">
                                             {members?.slice(0,2).map(member =>member.name).join(", ")}
                                             {members?.length>2 &&(
-                                                <span className="fw-semibold ms-1">+{members.length-2} more</span>
+                                                <span 
+                                                    className="fw-semibold ms-1"
+                                                    onClick={scrollToMemberBalances}
+                                                    style={{ cursor: "pointer" }}
+                                                >+{members.length-2} more</span>
                                             )}
                                         </span>
                                         <span className="d-none d-md-inline">
                                             {members?.slice(0, 6).map(m => m.name).join(", ")}
                                             {members?.length > 6 && (
-                                                <span className="fw-semibold ms-1">+{members.length - 6} more</span>
+                                                <span 
+                                                    className="fw-semibold ms-1"
+                                                    onClick={scrollToMemberBalances}
+                                                    style={{ cursor: "pointer" }}
+                                                >+{members.length - 6} more</span>
                                             )}
                                         </span>
                                         
                                     </div>
                                 </div>
                             </div>
-                            {/* <div className="col-4 col-md-2">
-                                <Button
-                                    className=" btn-phonepe hover-scale"
-                                    onClick={()=>{
-                                        setViewMembersModal(true)
-                                        fetchMembers(groupId);
-                                    }}
-                                >
-                                    View Members
-                                </Button>
-                            </div> */}
+                        
+                        </div>
+                    </div>
+                </Card>
+                
+                <Card className="mt-4" title="Group Summary" >
+                    <div className="row g-3">
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Amount"
+                                value={`₹${totalExpenseAmount}`}
+                                description="Total amount spent in this group"
+                                icon={<Wallet />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Members"
+                                value={members.length}
+                                description="Group participants"
+                                icon={<Users />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Expenses"
+                                value={expenses.length}
+                                description="Recorded transactions"
+                                icon={<ReceiptPoundSterling />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Total Paid"
+                                value={
+                                    <div>
+                                        <span>₹</span>
+                                        <span>{memberBalances.find(memberBalance =>
+                                    memberBalance.userId===localStorage.getItem("id")
+                                    )?.totalPaid ?? 0}</span>
+                                    </div>
+                                }
+                                valueColor ="text-success"
+                                description="Total amount you've paid in this group"
+                                icon={<ReceiptPoundSterling />}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-6 col-lg-4">
+                            <SummaryCard 
+                                title="Your Share"
+                                value={
+                                    <div>
+                                        <span>₹</span>
+                                        <span>{memberBalances.find(memberBalance =>
+                                            memberBalance.userId===localStorage.getItem("id")
+                                            )?.totalShare ?? 0}</span>
+                                    </div>}
+                                valueColor ="text-danger"
+                                description="Your total share of the group expenses"
+                                icon={<ReceiptPoundSterling />}
+                            />
                         </div>
                     </div>
                 </Card>
                 
 
-                
-
                 <Card 
                     title="Group Expenses" 
-                    className="mt-3 "
+                    className="mt-4 "
                     action={
                         <Button
                             className="btn-phonepe hover-scale"
@@ -395,7 +464,13 @@ export default function ViewGroup(){
                                                                 height:"28px",
                                                             }}>
                                                             {/* <User/> */}
-                                                            <CircleUserRound size={40}/>
+                                                            {/* <CircleUserRound size={40}/> */}
+                                                            <img 
+                                                                src="/profile_pic.png"
+                                                                style={{
+                                                                    maxWidth:"30px"
+                                                                }}
+                                                            />
                                                         </div>
                                                         
                                                         <span>{expense.paidBy}</span>
@@ -574,58 +649,11 @@ export default function ViewGroup(){
                     </div>
                 </Card>
 
-                <Card className="mt-3" title="Group Summary" >
-                    <div className="row g-3">
-                        <div className="col-12 col-sm-6 col-lg-4">
-                            <SummaryCard 
-                                title="Total Amount"
-                                value={`₹${totalExpenseAmount}`}
-                                description="Total amount spent in this group"
-                                icon={<Wallet />}
-                            />
-                        </div>
-                        <div className="col-12 col-sm-6 col-lg-4">
-                            <SummaryCard 
-                                title="Total Members"
-                                value={members.length}
-                                description="Group participants"
-                                icon={<Users />}
-                            />
-                        </div>
-                        <div className="col-12 col-sm-6 col-lg-4">
-                            <SummaryCard 
-                                title="Total Expenses"
-                                value={expenses.length}
-                                description="Recorded transactions"
-                                icon={<ReceiptPoundSterling />}
-                            />
-                        </div>
-                        <div className="col-12 col-sm-6 col-lg-4">
-                            <SummaryCard 
-                                title="Total Paid"
-                                value={memberBalances.find(memberBalance =>
-                                    memberBalance.userId===localStorage.getItem("id")
-                                    )?.totalPaid ?? 0}
-                                description="Total amount you have paid for group expenses"
-                                icon={<ReceiptPoundSterling />}
-                            />
-                        </div>
-                        <div className="col-12 col-sm-6 col-lg-4">
-                            <SummaryCard 
-                                title="Your Share"
-                                value={memberBalances.find(memberBalance =>
-                                    memberBalance.userId===localStorage.getItem("id")
-                                    )?.totalShare ?? 0}
-                                description="Your total share of the group expenses"
-                                icon={<ReceiptPoundSterling />}
-                            />
-                        </div>
-                    </div>
-                </Card>
-
+                
+                <div ref={memberBalancesRef}>
                 <Card
                     title="Member Balances"
-                    className="mt-3"
+                    className="my-4"
                 >
                     {errors.server && (
                         <div className="d-flex justify-content-center">
@@ -635,7 +663,7 @@ export default function ViewGroup(){
                         </div>
                         
                     )}
-                    <div className="row g-3">
+                    <div className="row g-3" >
                         {memberBalances.map((member)=>(
                             <div className="col-12 col-sm-6 col-lg-4" key={member.userId}>
                                 <Card
@@ -643,7 +671,13 @@ export default function ViewGroup(){
                                 >
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <div className="d-flex align-items-center gap-2">
-                                            <CircleUserRound size={30}/>
+                                            {/* <CircleUserRound size={30}/> */}
+                                            <img 
+                                                src="/profile_pic.png"
+                                                style={{
+                                                    maxWidth:"40px"
+                                                }}
+                                            />
                                             <div className="d-flex flex-column">
                                                 <h6 className="fw-bold mb-0">
                                                     {member.name}
@@ -741,7 +775,12 @@ export default function ViewGroup(){
                     </div>
 
                 </Card>
-            </Card>
+                </div>
+
+                <Card title={`Net Balance Per Member`} className="my-4">
+                    <BalanceChart balances={memberBalances}/>
+                </Card>
+            {/* </Card> */}
 
             <CustomModal
                 show={viewMembersModal}

@@ -6,6 +6,7 @@ export default function BalanceChart({balances}){
     );
 
     const range = Math.ceil(maxBalance / 1000) * 1000 + 1000;
+    // const range = maxBalance + 1000;
     return (
         <div className="container mb-5">
             <div style={{ width: "100%", height: 300 }}>

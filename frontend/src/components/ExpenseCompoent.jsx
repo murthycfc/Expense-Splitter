@@ -89,7 +89,7 @@ export default function ExpenseCompoent({isEdit}){
             [key]: value
         }))
         if(key==="status"){
-            distributeEqually(expenseData.participants);
+            distributeEqually(expenseData.participants, expenseData.paidBy);
         }
         setErrors(prev =>({
             ...prev,
@@ -97,8 +97,8 @@ export default function ExpenseCompoent({isEdit}){
         }))
     }
 
-    function distributeEqually(participantIds){
-        const totalPercentage = 10000;
+    function distributeEqually(participantIds, paidBy=""){
+        const totalPercentage = 100;
         const count = participantIds.length;
 
         if(count===0){
@@ -106,15 +106,19 @@ export default function ExpenseCompoent({isEdit}){
             return ;
         }
 
-        const equalShare = Math.floor(totalPercentage/count);
-        const remainder = totalPercentage%count;
+        const equalShare = Math.floor((totalPercentage/count)*100)/100;
+        const remainder = Number((totalPercentage-(equalShare*count)).toFixed(2));
 
         const updatedPercentages = {};
 
+        const remainderAddIndex = participantIds.includes(paidBy) 
+            ? participantIds.indexOf(paidBy) : 0;
+
         participantIds.forEach((id, index)=>{
-            const percentage = equalShare + (index===0 ? remainder : 0);
-            updatedPercentages[id] = (percentage/100).toFixed(2);
+            const percentage = equalShare + (index===remainderAddIndex ? remainder : 0);
+            updatedPercentages[id] = percentage.toFixed(2);
         });
+        console.log("distribute")
         setPercentages(updatedPercentages);
     }
 
@@ -166,13 +170,19 @@ export default function ExpenseCompoent({isEdit}){
         (total, id) => total + (Number(percentages[id]) || 0),0);
 
     return(
-        <div >
-                <div className="mb-4 fw-bold fs-4">
-                    {isEdit ? "Update Expense" : "Create new expense"}
-                </div>
+        <div className="mb-4 mx-2 mx-md-4">
+            <div className="fw-bold fs-4">
+                {isEdit ? "Update Expense" : "Create new expense"}
+            </div>
+            <div className="text-muted small mt-1 mb-4">
+                {isEdit
+                    ? "Update expense details, payer information, or participant shares."
+                    : "Add an expense, choose who paid, and split the amount among group members."
+                }
+            </div>
            
             <form onSubmit={handleSubmit}>
-                <div className="row mx-3">
+                <div className="row mx-1">
                     <div className="col-12 col-md-6">
                         <Input 
                             id="description"
@@ -226,14 +236,20 @@ export default function ExpenseCompoent({isEdit}){
                                 value={expenseData.paidBy}
                                 required
                                 onChange={(value)=>{
-                                    setExpenseData(prev =>{
-                                        const updatedParticipants = prev.participants.includes(value) ? prev.participants : [...prev.participants, value];
-                                        return {
-                                            ...prev,
-                                            paidBy: value,
-                                            participants: updatedParticipants
-                                        }
-                                    })
+                                    const updatedParticipants = value ? 
+                                        (expenseData.participants.includes(value) ? 
+                                            expenseData.participants : [...expenseData.participants, value]) : 
+                                        expenseData.participants;
+                                    setExpenseData(prev =>({
+                                        ...prev,
+                                        paidBy: value,
+                                        participants: updatedParticipants
+                                        
+                                    }))
+                                
+                                    distributeEqually(updatedParticipants, value);
+                                
+                                    
                                     setErrors(prev => ({
                                         ...prev,
                                         paidBy: ""
@@ -246,7 +262,7 @@ export default function ExpenseCompoent({isEdit}){
                                 }))}
                             />
                         </div>
-                        <div className="col-12 col-md-6">
+                        <div className="col-12 col-md-6 mb-3">
                             <p className="form-label fw-semibold">Split Type<span className="text-danger ms-1">*</span></p>
                             <div className="d-flex gap-4">
                                 <Input 
@@ -283,7 +299,7 @@ export default function ExpenseCompoent({isEdit}){
                                         ...prev,
                                         participants: values
                                     }))
-                                    distributeEqually(values)
+                                    distributeEqually(values, expenseData.paidBy)
 
                                     setErrors(prev =>({
                                         ...prev,
@@ -297,10 +313,10 @@ export default function ExpenseCompoent({isEdit}){
                                 error={errors?.participants}
                             />
                         </div>
-                        <div className="col-10 mt-4 mx-auto">
+                        <div className="col-12 col-md-10  mt-4 mx-auto">
                             {expenseData.status==="PERCENTAGE" && (
                                 <div className="table-responsive border rounded">
-                                    <div className="mx-3 my-3">
+                                    <div className="m-2 m-md-3">
                                         <span className="fs-4">Percentage Split – Assign a percentage share to each participant.</span>
                                     </div>
                                     
@@ -339,7 +355,7 @@ export default function ExpenseCompoent({isEdit}){
                                                                     onChange={(e)=>{
                                                                         const value = e.target.value;
                                                                         const newTotalPercentage = totalPercentage - (Number(percentages[id]) || 0) + (Number(value)||0);
-                                                                        if(Number(value)>100 || newTotalPercentage > 100){
+                                                                        if(Number(value)>100 ){
                                                                             return;
                                                                         }
                                                                         setPercentages(prev=>({
@@ -368,7 +384,7 @@ export default function ExpenseCompoent({isEdit}){
                                         <tfoot>
                                             <tr>
                                                 <td className="fw-semibold px-3">Total</td>
-                                                <td>{totalPercentage.toFixed(2)}</td>
+                                                <td className={`${totalPercentage.toFixed(2)>100 ? "text-danger" : `${totalPercentage.toFixed(2)==="100.00" ? "text-success" : ""}`} fw-bold`}>{totalPercentage.toFixed(2)}</td>
                                                 <td> {(Number(expenseData.amount || 0) * (totalPercentage / 100)).toFixed(2)}</td>
                                             </tr>
                                         </tfoot>

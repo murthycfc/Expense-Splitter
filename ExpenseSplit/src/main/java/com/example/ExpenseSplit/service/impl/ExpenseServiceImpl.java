@@ -130,7 +130,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
                 if(status==Status.PERCENTAGE){
 
-                    BigDecimal share = amount.multiply(participantRequest.getPercent().divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP));
+                    BigDecimal share = amount.multiply(participantRequest.getPercent()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
                     participant.setValue(share);
                     total = total.add(share);
                 }
@@ -143,9 +143,15 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             BigDecimal remainingAmount = amount.subtract(total);
-            if(remainingAmount.compareTo(BigDecimal.ZERO)>0){
+            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
                 Participant payer =  participants.stream().filter(p-> p.getUser().getId().equals(request.getPaidBy())).findFirst().orElse(null);
-                payer.setValue(payer.getValue().add(remainingAmount));
+                if(payer!=null){
+                    payer.setValue(payer.getValue().add(remainingAmount));
+                }
+                else {
+                    Participant firstParticipant = participants.get(0);
+                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
+                }
             }
 
             expense.setParticipants(participants);
@@ -273,12 +279,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
             Group group = expense.getGroup();
-//            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
-//                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't edit expense"));
-//
-//            if(groupMember.isDeleted()){
-//                throw new AccessDeniedException("You are no longer member in this group. So can't edit expense");
-//            }
 
             if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
                 throw new AccessDeniedException("You don't have access to edit this expense");
@@ -362,36 +362,51 @@ public class ExpenseServiceImpl implements ExpenseService {
             BigDecimal amount = request.getAmount();
             int participantSize = participantRequests.size();
             BigDecimal equalsAmount = amount.divide(BigDecimal.valueOf(participantSize), 2, RoundingMode.HALF_UP);
+            BigDecimal total = BigDecimal.ZERO;
+            List<Participant> updatedParticipants = new ArrayList<>();
+
+
 
             for(ParticipantRequest participantRequest : participantRequests){
                 User participantUser = participantUsers.get(participantRequest.getId());
-                Participant existingParticipant  = expenseParticipants.stream().filter(p->p.getUser().getId().equals(participantUser.getId()))
+                Participant participant  = expenseParticipants.stream().filter(p->p.getUser().getId().equals(participantUser.getId()))
                         .findFirst().orElse(null);
 
-                if(existingParticipant!=null){
-                    existingParticipant.setDeleted(false);
-                    if(status==Status.EQUAL){
-                        existingParticipant.setValue(equalsAmount);
-                        existingParticipant.setPercent(null);
-                    }
-                    else{
-                        existingParticipant.setPercent(participantRequest.getPercent());
-                        existingParticipant.setValue(amount.multiply(participantRequest.getPercent().divide(new BigDecimal("100"),2,RoundingMode.HALF_UP)));
-                    }
-                }else {
-
-                    Participant newParticipant = new Participant();
-                    newParticipant.setExpense(expense);
-                    newParticipant.setUser(participantUser);
-                    if(status==Status.EQUAL){
-                        newParticipant.setValue(equalsAmount);
-                    }
-                    else {
-                        newParticipant.setPercent(participantRequest.getPercent());
-                        newParticipant.setValue(amount.multiply(participantRequest.getPercent().divide(new BigDecimal("100"),2,RoundingMode.HALF_UP)));
-                    }
-                    participantRepository.save(newParticipant);
+                if(participant ==null){
+                    participant = new Participant();
+                    participant.setExpense(expense);
+                    participant.setUser(participantUser);
                 }
+                participant.setDeleted(false);
+                if (status == Status.EQUAL) {
+                    participant.setValue(equalsAmount);
+                    participant.setPercent(null);
+                }
+                else{
+                    participant.setPercent(participantRequest.getPercent());
+
+                    BigDecimal share = amount.multiply(participantRequest.getPercent())
+                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+
+                    participant.setValue(share);
+                }
+                total = total.add(participant.getValue());
+                updatedParticipants.add(participant);
+            }
+            BigDecimal remainingAmount = amount.subtract(total);
+            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
+                Participant payer = updatedParticipants.stream()
+                        .filter(p -> p.getUser().getId().equals(paidByUser.getId()))
+                        .findFirst()
+                        .orElse(null);
+                if(payer!=null){
+                    payer.setValue(payer.getValue().add(remainingAmount));
+                }
+                else{
+                    Participant firstParticipant = updatedParticipants.get(0);
+                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
+                }
+                participantRepository.saveAll(updatedParticipants);
             }
 
             Expense savedExpense = expenseRepository.save(expense);

@@ -20,7 +20,8 @@ public interface GroupsMapper {
 
     List<GroupResponse> toGroupResponses(List<Group> groups);
 
-    @Mapping(source = "createdAt", target = "createdAt")
+//    @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(target = "totalMembers", expression = "java((int)group.getGroupMembers().stream().filter(member -> !member.isDeleted()).count())")
     GroupResponse toGroupResponse(Group group);
 
 //    default Page<GroupResponse> toGroupResponses(Page<Group> groups){

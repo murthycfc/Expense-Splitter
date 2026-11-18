@@ -333,7 +333,9 @@ public class GroupServiceImpl implements GroupService {
 
             BigDecimal totalExpense = BigDecimal.ZERO;
             for(Expense expense : group.getExpenses()){
-                totalExpense = totalExpense.add(expense.getAmount());
+                if(!expense.isDeleted()){
+                    totalExpense = totalExpense.add(expense.getAmount());
+                }
             }
             return totalExpense;
         }

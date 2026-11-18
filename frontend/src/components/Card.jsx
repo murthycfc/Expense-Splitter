@@ -4,7 +4,7 @@ export default function Card({title,action,icon, children,style, className="", o
         <div className={`card shadow-sm rounded-3 ${className}`} style={style} onClick={onClick}>
             {title && (
                 <div className="card-header fw-bold bg-white border-0 d-flex justify-content-between align-items-between mt-1">
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-2 mx-3 mt-2">
                         {icon}
                         <h3 className="mb-0">{title}</h3>
                     </div>
