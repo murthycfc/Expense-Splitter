@@ -189,7 +189,7 @@ export default function Navbar() {
                     <div className="d-flex flex-column" >
                         <div className="d-flex flex-column align-items-center ">
                             <div className="fw-bold fs-4">{userInfo?.name}</div>
-                            <div><Mail size={18}/> {userInfo?.email}</div>
+                            {/* <div><Mail size={18}/> {userInfo?.email}</div> */}
                         </div>
 
                         <div>

@@ -11,6 +11,7 @@ import CustomDatePicker from "../components/CustomDatePicker";
 import Select from "../components/Select";
 import AddExpenseValidation from "../validation/AddExpenseValidation";
 import CustomModal from "../components/CustomModal";
+import BreadCrumb from "../components/Breadcrumb";
 export default function ViewExpense(){
     const {expenseId} = useParams();
     const [expenseData, setExpenseData] = useState();
@@ -133,8 +134,23 @@ export default function ViewExpense(){
     }
     return(
         <div className="container my-3 ">
+            <BreadCrumb 
+                items={[
+                    {
+                        label:"Groups",
+                        to:"/"
+                    },
+                    {
+                        label:"View Group",
+                        to:`/groups/${expenseData?.groupId}/view`
+                    },
+                    {
+                        label: expenseData?.description || "View Expense"
+                    }
+                ]}
+            />
             <div className="d-flex flex-column gap-2">
-                <div>
+                {/* <div>
                     <Button
                         className="btn-phonepe"
                         onClick={()=>navigate(`/groups/${expenseData?.groupId}/view`)}
@@ -146,7 +162,7 @@ export default function ViewExpense(){
                             
                         
                     </Button>
-                </div>
+                </div> */}
                 <Card 
                     className="p-0"
                 >
@@ -210,7 +226,7 @@ export default function ViewExpense(){
                                         <span>Amount</span>
                                     </div>
                                     
-                                    <span className="fw-bold">{expenseData?.amount}</span>
+                                    <span className="fw-bold">{expenseData?.amount.toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex flex-md-column justify-content-around align-items-center gap-5 gap-md-2">
                                     <div className="d-flex flex-md-column justify-content-center align-items-start align-items-md-center gap-2">
@@ -247,7 +263,9 @@ export default function ViewExpense(){
                                                 <table className="table align-middle mb-0">
                                                     <colgroup>
                                                         <col className="participant-name-col"/>
-                                                        <col className="partcipant-percentage-col"/>
+                                                        {expenseData?.status === "PERCENTAGE" && (
+                                                                <col className="participant-percentage-col"/>
+                                                            )}
                                                         <col className="participant-amount-col"/>
                                                     </colgroup>
                                                     <thead>
@@ -282,7 +300,7 @@ export default function ViewExpense(){
                                                                 
                                                                 <td>
                                                                     <div className="badge rounded-pill" style={{backgroundColor:"#9558d6"}}>
-                                                                        {participant?.value}
+                                                                        {(participant?.value).toFixed(2)}
                                                                     </div>
                                                                     
                                                                 </td>

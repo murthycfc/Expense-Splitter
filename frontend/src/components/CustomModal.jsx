@@ -11,7 +11,7 @@ export default function CustomModal({show,onHide,title, size="md",centered="true
         >
             <Modal.Header 
                 closeButton
-                className={`position-relative ${centerTitle ? "py-4": ""}`}
+                className={`position-relative ${centerTitle ? "py-4": "py-2"}`}
 
             >
                 <Modal.Title className={centerTitle ? "position-absolute top-50 start-50 translate-middle" : ""}>

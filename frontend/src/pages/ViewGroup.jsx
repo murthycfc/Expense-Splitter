@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import Card from "../components/Card";
 import { useNavigate, useParams } from "react-router";
 import { addExpense, addMembers, getExpenses, getGroup, getMemberBalances, getMembers, getNonMembers, getTotalExpenses, getTotoalExpenses, removeMember } from "../api/apis";
-import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, DollarSign, EllipsisVertical, Receipt, ReceiptPoundSterling, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, Delete, DollarSign, EllipsisVertical, Receipt, ReceiptPoundSterling, Trash, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
 import Button from "../components/Button";
 import DateFormatter from "../utils/DateFormatter";
 import Input from "../components/Input";
@@ -15,6 +15,7 @@ import CustomModal from "../components/CustomModal";
 import SummaryCard from "../components/SummaryCard";
 import { toast } from "react-toastify";
 import BalanceChart from "../components/BalanceChart"
+import BreadCrumb from "../components/Breadcrumb";
 
 export default function ViewGroup(){
     const [groupInfo, setGroupInfo] = useState();
@@ -54,9 +55,9 @@ export default function ViewGroup(){
     const [activeMenu, setActiveMenu] = useState(null);
 
     const observerTarget = useRef(null);
-    
-
+    const dropdownRef = useRef(null);
     const memberBalancesRef = useRef(null);
+
 
 
     const {groupId} = useParams();
@@ -156,6 +157,21 @@ export default function ViewGroup(){
         fetchExpenses(groupId);
     },[groupId, page]);
 
+    useEffect(()=>{
+        function handleClickOutside(e){
+            
+            if(dropdownRef.current && !dropdownRef.current.contains(e.target)){
+                setActiveMenu(null);
+                console.log("handleClck");
+            }
+            // setActiveMenu(null);
+            // console.log("handleClck");
+        } 
+        document.addEventListener("mousedown", handleClickOutside);
+        return ()=>{
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+    },[])
     useEffect(() => {
         const observer = new IntersectionObserver(
             entries => {
@@ -266,12 +282,23 @@ export default function ViewGroup(){
 
     return(
         <div className="container mt-3">
-            <Button 
+            <BreadCrumb 
+                items={[
+                    {
+                        label:"Groups",
+                        to:"/"
+                    },
+                    {
+                        label:groupInfo?.name || "View Group"
+                    }
+                ]}
+            />
+            {/* <Button 
                 className="btn-phonepe hover-scale mb-3"
                 onClick={()=>navigate("/")}
             >
                 <ArrowLeft /> Back
-            </Button>
+            </Button> */}
             {/* <Card> */}
                 <Card style={{backgroundColor: "#7d35c9"}}>
                     <div className="text-white px-md-1" >
@@ -323,6 +350,8 @@ export default function ViewGroup(){
                         </div>
                     </div>
                 </Card>
+
+                
                 
                 <Card className="mt-4" title="Group Summary" >
                     <div className="row g-3">
@@ -384,6 +413,137 @@ export default function ViewGroup(){
                     </div>
                 </Card>
                 
+                <Card title={`Net Balance Per Member`} className="my-4">
+                    <BalanceChart balances={memberBalances}/>
+                </Card>
+                
+                <div ref={memberBalancesRef}>
+                <Card
+                    title="Member Balances"
+                    className="my-4"
+                >
+                    {errors.server && (
+                        <div className="d-flex justify-content-center">
+                            <div className="alert alert-danger text-center w-50">
+                                {errors.server}
+                            </div>
+                        </div>
+                        
+                    )}
+                    <div className="row g-3" ref={dropdownRef}>
+                        {memberBalances.map((member)=>(
+                            <div className="col-12 col-sm-6 col-lg-4" key={member.userId}>
+                                <Card
+                                    className="member-balance-card"
+                                >
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <div className="d-flex align-items-center gap-2">
+                                            {/* <CircleUserRound size={30}/> */}
+                                            <img 
+                                                src="/profile_pic.png"
+                                                style={{
+                                                    maxWidth:"40px"
+                                                }}
+                                            />
+                                            <div className="d-flex flex-column">
+                                                <h6 className="fw-bold mb-0">
+                                                    {member.name}
+                                                </h6>
+                                                <span>{member.email}</span>
+                                            </div>
+                                        </div>
+                                        
+
+                                        <div className="dropdown position-relative">
+                                            <Button
+                                                onClick={()=>{
+                                                    setActiveMenu(
+                                                        activeMenu===member.userId ? null : member.userId
+                                                    )
+                                                }}
+                                            >
+                                                <EllipsisVertical size={20}/>
+                                            </Button>
+                                            {activeMenu===member.userId && (
+                                                <div
+                                                    className="dropdown-menu dropdown-menu-end show p-2"
+                                                    style={{
+                                                        position: "absolute",
+                                                        top:"100%",
+                                                        right:"0%",
+                                                        minWidth: "120px",
+                                                        borderRadius: "10px"
+                                                    }}
+                                                >
+                                                    <Button
+                                                        onClick={()=>{
+                                                            setActiveMenu(null);
+                                                            handleRemoveMember(member.userId);
+                                                        }}
+                                                        className="dropdown-item dropdown-delete-item d-flex align-items-center gap-1 rounded px-2 py-1 fw-semibold"
+                                                    >
+                                                        <Trash size={14}/> 
+                                                        <span className="mb-0">Remove</span>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            
+                                        </div>
+
+                                    </div>
+                                <div className="d-flex justify-content-between">
+                                    <div className="d-flex gap-2">
+                                        <small className="text-muted">
+                                            Net Balance:
+                                        </small>
+                                        <h5 className={`fw-bold mb-0 ${
+                                            member.status === "RECEIVE"
+                                                ? "text-success"
+                                                : member.status === "OWES"
+                                                    ? "text-danger"
+                                                    : "text-secondary"
+                                        }`}>
+                                            ₹{Math.abs(member.netBalance).toFixed(2)}
+                                        </h5>
+                                    </div>
+                                    <div>
+                                        <span className={`balance-status ${member.status.toLowerCase()}`}>
+                                            {member.status}
+                                        </span>
+                                    </div>
+                                   
+                                    
+                                </div>
+
+                                <hr />
+                                <div className="d-flex justify-content-between">
+                                    <span className="text-muted">
+                                        Total Paid
+                                    </span>
+
+                                    <span className="fw-semibold">
+                                        ₹{member.totalPaid.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="d-flex justify-content-between">
+                                    <span className="text-muted">
+                                        Total Share
+                                    </span>
+
+                                    <span className="fw-semibold">
+                                        ₹{member.totalShare.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                </Card>
+
+                            </div>
+                        ))}
+                    </div>
+
+                </Card>
+                </div>
 
                 <Card 
                     title="Group Expenses" 
@@ -479,7 +639,7 @@ export default function ViewGroup(){
                                                 </td>
                                                 <td>
                                                     <div className="d-flex align-items-center ps-2">
-                                                        {expense?.participants.map((name, index)=>{
+                                                        {expense?.participants.slice(0,8).map((name, index)=>{
                                                             const letter = name.trim().charAt(0).toUpperCase();
                                                             return (
                                                                 <div
@@ -498,6 +658,21 @@ export default function ViewGroup(){
                                                                 </div>
                                                             )
                                                         })}
+                                                        {expense.participants.length>8 &&(
+                                                            <div
+                                                                className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold bg-secondary border border-2 border-white"
+                                                                style={{
+                                                                    width: '32px',
+                                                                    height: '32px',
+                                                                    fontSize: '11px',
+                                                                    marginLeft: "-10px",
+                                                                    zIndex:2
+                                                                }}
+                                                                title={`${expense.participants.length - 8} more participants`}
+                                                            >
+                                                                {`+${expense.participants.length-8}`}
+                                                            </div>
+                                                        )}
 
                                                     </div>
                                                 </td>
@@ -578,7 +753,7 @@ export default function ViewGroup(){
 
                                                     <div className="d-flex align-items-center">
                                                         <span>Participants:</span>
-                                                        {expense?.participants.map((name, index)=>{
+                                                        {expense?.participants.slice(0,5).map((name, index)=>{
                                                             const letter = name.trim().charAt(0).toUpperCase();
                                                             return (
                                                                 <div
@@ -597,6 +772,21 @@ export default function ViewGroup(){
                                                                 </div>
                                                             )
                                                         })}
+                                                        {expense?.participants.length>5 &&(
+                                                            <div
+                                                                className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold bg-secondary border border-2 border-white"
+                                                                style={{
+                                                                    width: "32px",
+                                                                    height: "32px",
+                                                                    fontSize: "11px",
+                                                                    marginLeft: "-10px",
+                                                                    zIndex: 5
+                                                                }}
+                                                                title={`${expense.participants.length - 5} more participants`}
+                                                            >
+                                                                +{expense.participants.length-5}
+                                                            </div>
+                                                        )}
 
                                                     </div>
                                                 </div>
@@ -606,7 +796,7 @@ export default function ViewGroup(){
                                                         onClick={()=>navigate(`/expenses/${expense.id}/view`)}
                                                         
                                                     >
-                                                        <span>View Details </span>
+                                                        <span>View</span>
                                                     </Button>
                                                 </div>
 
@@ -650,408 +840,7 @@ export default function ViewGroup(){
                 </Card>
 
                 
-                <div ref={memberBalancesRef}>
-                <Card
-                    title="Member Balances"
-                    className="my-4"
-                >
-                    {errors.server && (
-                        <div className="d-flex justify-content-center">
-                            <div className="alert alert-danger text-center w-50">
-                                {errors.server}
-                            </div>
-                        </div>
-                        
-                    )}
-                    <div className="row g-3" >
-                        {memberBalances.map((member)=>(
-                            <div className="col-12 col-sm-6 col-lg-4" key={member.userId}>
-                                <Card
-                                    className="member-balance-card"
-                                >
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <div className="d-flex align-items-center gap-2">
-                                            {/* <CircleUserRound size={30}/> */}
-                                            <img 
-                                                src="/profile_pic.png"
-                                                style={{
-                                                    maxWidth:"40px"
-                                                }}
-                                            />
-                                            <div className="d-flex flex-column">
-                                                <h6 className="fw-bold mb-0">
-                                                    {member.name}
-                                                </h6>
-                                                <span>{member.email}</span>
-                                            </div>
-                                        </div>
-                                        
-
-                                        <div className="dropdown position-relative">
-                                            <Button
-                                                onClick={()=>{
-                                                    setActiveMenu(
-                                                        activeMenu===member.userId ? null : member.userId
-                                                    )
-                                                }}
-                                            >
-                                                <EllipsisVertical size={20}/>
-                                            </Button>
-                                            {activeMenu===member.userId && (
-                                                <div
-                                                    className="dropdown-menu dropdown-menu-end show p-2"
-                                                    style={{
-                                                        position: "absolute",
-                                                        top:"100%",
-                                                        right:"0%",
-                                                        minWidth: "150px",
-                                                        borderRadius: "10px"
-                                                    }}
-                                                >
-                                                    <Button
-                                                        onClick={()=>{
-                                                            setActiveMenu(null);
-                                                            handleRemoveMember(member.userId);
-                                                        }}
-                                                        className="dropdown-item  rounded px-2 py-1 fw-semibold"
-                                                    >
-                                                        Remove
-                                                    </Button>
-                                                </div>
-                                            )}
-                                            
-                                        </div>
-
-                                    </div>
-                                <div className="d-flex justify-content-between">
-                                    <div className="d-flex gap-2">
-                                        <small className="text-muted">
-                                            Net Balance:
-                                        </small>
-                                        <h5 className={`fw-bold mb-0 ${
-                                            member.status === "RECEIVE"
-                                                ? "text-success"
-                                                : member.status === "OWES"
-                                                    ? "text-danger"
-                                                    : "text-secondary"
-                                        }`}>
-                                            ₹{Math.abs(member.netBalance).toFixed(2)}
-                                        </h5>
-                                    </div>
-                                    <div>
-                                        <span className={`balance-status ${member.status.toLowerCase()}`}>
-                                            {member.status}
-                                        </span>
-                                    </div>
-                                   
-                                    
-                                </div>
-
-                                <hr />
-                                <div className="d-flex justify-content-between">
-                                    <span className="text-muted">
-                                        Total Paid
-                                    </span>
-
-                                    <span className="fw-semibold">
-                                        ₹{member.totalPaid.toFixed(2)}
-                                    </span>
-                                </div>
-
-                                <div className="d-flex justify-content-between">
-                                    <span className="text-muted">
-                                        Total Share
-                                    </span>
-
-                                    <span className="fw-semibold">
-                                        ₹{member.totalShare.toFixed(2)}
-                                    </span>
-                                </div>
-
-                                </Card>
-
-                            </div>
-                        ))}
-                    </div>
-
-                </Card>
-                </div>
-
-                <Card title={`Net Balance Per Member`} className="my-4">
-                    <BalanceChart balances={memberBalances}/>
-                </Card>
             {/* </Card> */}
-
-            <CustomModal
-                show={viewMembersModal}
-                onHide={()=>{
-                    setViewMembersModal(false)
-                    setErrors({})
-                }}
-                title="Group Members"
-                
-            >
-                <div className="mx-4 mt-3">
-                    {errors.server && (
-                        <div className="alert alert-danger">
-                            {errors.server}
-                        </div>
-                    )}
-                        {members.map(member =>(
-                            <div 
-                                key={member.id}
-                                className="row align-items-center mb-2 gx-4"
-                            >
-                                <div className="col-1">
-                                    
-                                    <CircleUserRound size={24} />
-                                </div>
-                                <div className="col-4">
-                                    {member.name}
-                                </div>
-                                <div className="col-4">
-                                    {member.email}
-                                </div>
-                                <div className="col-2">
-                                    <Button 
-                                        onClick={()=>handleRemoveMember(member.id)}
-                                        className="btn-phonepe hover-scale">
-                                        Remove
-                                    </Button>
-                                </div>
-                                
-                            </div>
-                            
-                        ))}
-                </div>
-                
-
-            </CustomModal>
-
-            <CustomModal
-                show={showExpensemodal}
-                onHide={()=>{
-                    setShowExpenseModal(false)
-                    setExpenseData({
-                        description:"",
-                        amount:"",
-                        date:"",
-                        paidBy:"",
-                        status:"",
-                        participants:[]
-                    })
-                    setErrors({})
-                }}
-                size="lg"
-                title="Create Expense"
-            >
-                <form onSubmit={handleSubmit}>
-                    <Modal.Body>
-                        <div className="row">
-                            <div className="col-12 col-md-6">
-                                <Input 
-                                    id="description"
-                                    placeholder="Enter description"
-                                    type="text"
-                                    label="Description"
-                                    required
-                                    value={expenseData.description}
-                                    onChange={handleChange}
-                                    error={errors?.description}
-                                />
-                            </div>
-                            <div className="col-12 col-md-6">
-                                <Input 
-                                    id="amount"
-                                    placeholder="Enter amount"
-                                    type="number"
-                                    label="Amount"
-                                    required
-                                    value={expenseData.amount}
-                                    onChange={handleChange}
-                                    error={errors?.amount}
-                                />
-                            </div>
-                            <div className="col-12 col-md-6">
-                                <CustomDatePicker 
-                                    id="date"
-                                    placeholderText="Select expense date"
-                                    label="Date"
-                                    required
-                                    value={expenseData.date}
-                                    onChange={(date)=>{
-                                        setExpenseData(prev=>({
-                                            ...prev,
-                                            date: date ? date.toISOString().split("T")[0]: ""
-                                        }))
-                                        setErrors(prev =>({
-                                            ...prev,
-                                            date: ""
-                                        }))
-                                    }}
-                                    error={errors?.date}
-                                />
-                            </div>
-                            <div className="col-12 col-md-6">
-                                <Select 
-                                    id="paidBy"
-                                    placeholder="Select Payer"
-                                    label="Paid by"
-                                    value={expenseData.paidBy}
-                                    required
-                                    onChange={(value)=>{
-                                        setExpenseData(prev =>{
-                                            const updatedParticipants = prev.participants.includes(value) ? prev.participants : [...prev.participants, value];
-                                            return {
-                                                ...prev,
-                                                paidBy: value,
-                                                participants: updatedParticipants
-                                            }
-                                        })
-                                        setErrors(prev => ({
-                                            ...prev,
-                                            paidBy: ""
-                                        }))
-                                    }}
-                                    error={errors.paidBy}
-                                    options={members.map(member =>({
-                                        value: member.id,
-                                        label: member.name
-                                    }))}
-                                />
-                            </div>
-                            <div className="col-12 col-md-6">
-                                <p className="form-label fw-semibold">Split Type<span className="text-danger ms-1">*</span></p>
-                                <div className="d-flex gap-4">
-                                    <Input 
-                                        id="equals"
-                                        name="status"
-                                        type="radio"
-                                        label="Equal Split"
-                                        value="EQUAL"
-                                        onChange={handleChange}
-                                        checked={expenseData.status==="EQUAL"}
-                                        error={errors?.status}
-                                    />
-                                    <Input 
-                                        id="percentage"
-                                        name="status"
-                                        type="radio"
-                                        label="Percentage"
-                                        value="PERCENTAGE"
-                                        onChange={handleChange}
-                                        checked={expenseData.status==="PERCENTAGE"}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-12 col-md-6">
-                                <Select 
-                                    id="participants"
-                                    label="participants"
-                                    placeholder="Select participants"
-                                    multiple
-                                    required
-                                    value={expenseData.participants}
-                                    onChange={(values)=>{
-                                        setExpenseData(prev =>({
-                                            ...prev,
-                                            participants: values
-                                        }))
-                                        setErrors(prev =>({
-                                            ...prev,
-                                            participants: ""
-                                        }))
-                                    }}
-                                    options={members.map(member=>({
-                                        value: member.id,
-                                        label: member.name 
-                                    }))}
-                                    error={errors?.participants}
-                                />
-                            </div>
-                            <div className="col-12 col-md-6">
-                                {expenseData.status==="PERCENTAGE" && (
-                                    <div className="table-responsive border rounded">
-                                        <div className="d-flex justify-content-center my-3">
-                                            <span>Percentage Split(Enter % for each participant)</span>
-                                        </div>
-                                        
-                                        <table className="table table-striped align-middle ">
-                                            <colgroup>
-                                                    <col style={{width: "50%"}}/>
-                                                    <col style={{width: "50%"}}/>
-                                                </colgroup>
-                                            <thead>
-                                                <tr>
-                                                    <td>Name</td>
-                                                    <td>Percentage</td>
-                                                </tr>
-                                            
-                                            </thead>
-                                            <tbody>
-                                                {expenseData.participants.map(id=>{
-                                                    const member = members?.find(member => member.id===id)
-
-                                                    return(
-                                                        <tr key={id}>
-                                                            <td>
-                                                                {member.name}
-                                                            </td>
-                                                            <td>
-                                                                <div className="d-flex">
-                                                                    <Input 
-                                                                        type="number"
-                                                                        min="0"
-                                                                        max="100"
-                                                                        className="form-control"
-                                                                        step="0.01" 
-                                                                        value={percentages[id] || ""}
-                                                                        onChange={(e)=>{
-                                                                            setPercentages(prev=>({
-                                                                                ...prev,
-                                                                                [id]: e.target.value
-                                                                            }))
-                                                                            setErrors(prev=>({
-                                                                                ...prev,
-                                                                                percentages:""
-                                                                            }))
-                                                                        }}
-                                                                    />
-                                                                    <span className="mt-2">%</span>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td className="fw-semibold px-3">Total</td>
-                                                    <td>{Object.values(percentages).reduce((total, currVal)=> total+ (Number(currVal) || 0),0)}</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        
-                        {errors?.server && (
-                            <div className="alert alert-danger">
-                                {errors.server}
-                            </div>
-                        )}
-                        <Button
-                            className="btn-phonepe hover-scale"
-                        
-                        >
-                            Create
-                        </Button>
-                    </Modal.Footer>
-                </form>
-            </CustomModal>
 
             <CustomModal
                 show={showAddMembersModal}
@@ -1076,6 +865,7 @@ export default function ViewGroup(){
                                     onChange={(e)=>{
                                         setEmailSearch(e.target.value)
                                     }}
+                                    containerClassName="mb-2"
                                 />
                                 {emailSearch && (
                                     <Button
@@ -1096,6 +886,7 @@ export default function ViewGroup(){
                             </Button>
                         </div> */}
                     </div>
+                    
                     {nonMembers.length===0 ? (
                         <div className="text-center my-5">
                             <img 
@@ -1106,49 +897,65 @@ export default function ViewGroup(){
                             />
                         </div>
                     ) : (
-                        nonMembers.map((nonMember)=>{
-                        return (
-                            <div 
-                                key={nonMember.id}
-                                className=""
-                            >
-                                <div className="row">
-                                    <div className="col-5">
-                                        <span>{nonMember.name}</span>
-                                    </div>
-                                    
-                                    <div className="col-5">
-                                        <span>{nonMember.email}</span>
-                                    </div>
-                                    
-                                    <div className="col-2">
-                                        <Button
-                                            onClick={()=>(
-                                                setSelectedUserIdsToAdd((prev) =>{
-                                                    if(prev.includes(nonMember.id)){
-                                                        return prev.filter(id => id!==nonMember.id)
-                                                    }
-                                                    return [...prev, nonMember.id];
-                                                })
-                                            )}
-                                            className={`${selectedUserIdsToAdd?.includes(nonMember.id) ? 'text-success' : 'text-muted'}`}
-                                        >
-                                            {selectedUserIdsToAdd.includes(nonMember.id) ? (
-                                                
-                                                <UserCheck />
-                                            ) : (
-                                                <UserPlus />
-                                            )}
-                                                
-                                        </Button>
-                                    </div>
-                                    
+                        <>
+                            <div className="row align-items-center border-bottom pb-2 mb-2">
+                                <div className="col-4">
+                                    <small className="fw-semibold text-uppercase">Name</small>
                                 </div>
-                                
+
+                                <div className="col-6">
+                                    <small className="fw-semibold text-uppercase">Email Address</small>
+                                </div>
+
+                                <div className="col-2 text-center">
+                                    <small className="fw-semibold text-uppercase">Add</small>
+                                </div>
                             </div>
-                        )
-                    })
-                    
+                            {
+                                nonMembers.map((nonMember)=>{
+                                    return (
+                                        <div 
+                                            key={nonMember.id}
+                                            className=""
+                                        >
+                                            <div className="row">
+                                                <div className="col-4">
+                                                    <span>{nonMember.name}</span>
+                                                </div>
+                                                
+                                                <div className="col-6">
+                                                    <span>{nonMember.email}</span>
+                                                </div>
+                                                
+                                                <div className="col-2">
+                                                    <Button
+                                                        onClick={()=>(
+                                                            setSelectedUserIdsToAdd((prev) =>{
+                                                                if(prev.includes(nonMember.id)){
+                                                                    return prev.filter(id => id!==nonMember.id)
+                                                                }
+                                                                return [...prev, nonMember.id];
+                                                            })
+                                                        )}
+                                                        className={`${selectedUserIdsToAdd?.includes(nonMember.id) ? 'text-success' : 'text-muted'}`}
+                                                    >
+                                                        {selectedUserIdsToAdd.includes(nonMember.id) ? (
+                                                            
+                                                            <UserCheck />
+                                                        ) : (
+                                                            <UserPlus />
+                                                        )}
+                                                            
+                                                    </Button>
+                                                </div>
+                                                
+                                            </div>
+                                            
+                                        </div>
+                                    )
+                                })
+                            }
+                        </>
                     )}
                     {nonMembers.length!==0 &&(
                         <div className="d-flex justify-content-between align-items-center mt-2">
@@ -1179,7 +986,7 @@ export default function ViewGroup(){
                     )}
                     
                 </Modal.Body>
-                <Modal.Footer>
+                <Modal.Footer className="py-2">
                     {errors.server && (
                         <div className="alert alert-danger">
                             {errors.server}

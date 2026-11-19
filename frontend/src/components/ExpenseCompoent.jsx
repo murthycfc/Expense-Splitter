@@ -323,12 +323,12 @@ export default function ExpenseCompoent({isEdit}){
                                     <table className="table align-middle mb-0">
                                         <colgroup>
                                                 <col style={{width: "50%"}}/>
-                                                <col style={{width: "25%"}}/>
-                                                <col style={{width: "25%"}}/>
+                                                <col style={{width: "35%"}}/>
+                                                <col style={{width: "15%"}}/>
                                             </colgroup>
                                         <thead className="table-light">
                                             <tr>
-                                                <td className="fw-bold">Name</td>
+                                                <td className="fw-bold px-3">Name</td>
                                                 <td className="fw-bold">Percentage</td>
                                                 <td className="fw-bold">Amount</td>
                                             </tr>
@@ -340,7 +340,7 @@ export default function ExpenseCompoent({isEdit}){
 
                                                 return(
                                                     <tr key={id}>
-                                                        <td>
+                                                        <td className="px-3">
                                                             {member?.name}
                                                         </td>
                                                         <td>
@@ -384,7 +384,12 @@ export default function ExpenseCompoent({isEdit}){
                                         <tfoot>
                                             <tr>
                                                 <td className="fw-semibold px-3">Total</td>
-                                                <td className={`${totalPercentage.toFixed(2)>100 ? "text-danger" : `${totalPercentage.toFixed(2)==="100.00" ? "text-success" : ""}`} fw-bold`}>{totalPercentage.toFixed(2)}</td>
+                                                <td className={`${totalPercentage.toFixed(2)>100 ? "text-danger" : `${totalPercentage.toFixed(2)==="100.00" ? "text-success" : ""}`}  d-flex flex-column`}>
+                                                    <span className="fw-bold">{totalPercentage.toFixed(2)}</span>
+                                                    {totalPercentage.toFixed(2)>100 && (
+                                                        <span className="text-danger fw-semibold">Total percentage must not exceed 100%</span>
+                                                    )}
+                                                </td>
                                                 <td> {(Number(expenseData.amount || 0) * (totalPercentage / 100)).toFixed(2)}</td>
                                             </tr>
                                         </tfoot>

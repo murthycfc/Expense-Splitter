@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { createGroup, deleteGroup, loadGroups, updateGroup } from "../api/apis";
 import Card from "../components/Card";
 import Button from "../components/Button";
-import { Edit, EllipsisVertical, Eye, PlusIcon, Trash } from "lucide-react";
+import { Calendar, Edit, EllipsisVertical, Eye, PlusIcon, Search, Trash, Users } from "lucide-react";
 import { useNavigate } from "react-router";
 import Modal from "react-bootstrap/Modal";
 import Input from "../components/Input";
@@ -12,6 +12,7 @@ import DateFormatter from "../utils/DateFormatter";
 import CustomModal from "../components/CustomModal";
 import { FaUser, FaUsers } from "react-icons/fa";
 import { toast } from "react-toastify";
+import BreadCrumb from "../components/Breadcrumb";
 
 export default function Groups(){
     const [groups, setGroups] = useState([]);
@@ -33,6 +34,7 @@ export default function Groups(){
     const [hasMore, setHasMore] = useState(true);
 
     const observerTarget = useRef(null);
+    const dropdownRef = useRef(null);
 
     const navigate = useNavigate();
 
@@ -71,6 +73,19 @@ export default function Groups(){
         }
         return () => observer.disconnect();
     }, [hasMore, loading]);
+
+    useEffect(()=>{
+        const handleClickOutside = (event) =>{
+            if(dropdownRef.current && !dropdownRef.current.contains(event.target)){
+                console.log("askjabc");
+                setActiveMenu(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return ()=>{
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+    },[]);
 
     function handleCreateGroup(){
         setupdatingGroupId(null);
@@ -142,6 +157,7 @@ export default function Groups(){
             description: group.description || ""
         })
         setupdatingGroupId(group.id);
+        console.log("handleEdit");
         setErrors({});
         setShowGroupModal(true);
     }
@@ -171,39 +187,45 @@ export default function Groups(){
 
     return (
         <div className="container my-4">
+            <BreadCrumb 
+                items={[
+                    {label: "Groups"}
+                ]}
+            />
             <div className="d-flex flex-column gap-3">
                 <div className="d-flex justify-content-between align-items-center ">
                     <div className="d-flex align-items-center gap-3">
-                        {/* <div style={{backgroundColor:"#5F259F"}} className="text-white p-2 rounded-3">
-                            <FaUsers size={30} />
-                        </div> */}
                         <div>
-                            {/* <img 
-                                src="/groups.png"
-                                style={{maxWidth:"100px"}}
-                            /> */}
                             <img 
                                 src="/groupsimg.png"
                                 style={{maxWidth:"150px"}}
                             />
                         </div>
-                        <div className="">
+                        <div className="d-flex flex-column gap-2">
                             <h5 className=" mb-0 fw-bold">Groups</h5>
                             <span className="text-muted small d-none d-md-block">
                                 Manage your groups and keep your expenses organized
                             </span>
+                                <Button 
+                                    className=" btn-phonepe hover-scale d-inline-flex align-items-center gap-1 align-self-end d-md-none "
+                                    onClick={handleCreateGroup}
+                                >
+                                    <PlusIcon/> Create Group
+                                </Button>
+                            
+
                         </div>
                     </div>
-                    <Button 
+                    {/* <Button 
                         className="btn-phonepe hover-scale d-inline-flex align-items-center gap-1 d-md-none"
                         onClick={handleCreateGroup}
                     >
                         <PlusIcon/> Create Group
-                    </Button>
+                    </Button> */}
                 </div>
                     {/* <Card> */}
                         <div className="row g-3">
-                            <div className="col-8 col-md-6 ">
+                            <div className="col-9 col-md-6 ">
                                 <Input 
                                     id="name"
                                     type="text"
@@ -213,9 +235,11 @@ export default function Groups(){
                                         setGroupName(e.target.value);
                                     }}
                                     containerClassName="mb-0"
+                                    startIcon={<Search size={18} className="text-muted"/>}
                                 />
+                                
                             </div>
-                            <div className="col-4 col-md-2">
+                            <div className="col-3 col-md-2">
                                 <Button 
                                     className="btn-phonepe hover-scale  px-3 px-md-4"
                                     onClick={()=>fetchGroups(groupName,0)}
@@ -256,18 +280,21 @@ export default function Groups(){
                                 />
                             </div>
                         )}
-                        <div className="row g-3">
+                        <div className="row g-3" ref={dropdownRef}>
                             {groups.map((group) => (
                                 // console.log(group.totalMembers)
-                                <div className="col-12 col-md-6 col-xl-4" key={group.id}>
+                                <div className="col-12 col-md-6 col-xl-4" key={group.id} >
                                     <Card
                                         onClick={() => handleView(group.id)}
                                         className={`group-card h-100  ${activeMenu===group.id ? "active-dropdown-card": ""}` }
                                         style={{
                                             background: "#FCFAFF"
+                                            //  backgroundImage: "url('/group-bg.png')",
+                                            //  backgroundSize: "cover",
+                                            
                                         }}
                                     >
-                                        <div className="d-flex flex-column h-100">
+                                        <div className="d-flex flex-column gap-1 h-100">
                                             <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                                                 <div className="d-flex gap-2">
                                                     <div
@@ -303,7 +330,7 @@ export default function Groups(){
                                                     </div>
 
                                                 </div>
-                                                <div className="dropdown position-relative">
+                                                <div className="dropdown position-relative" >
                                                     <Button
                                                         className=" p-1"
                                                         onClick={(e)=>{
@@ -332,12 +359,12 @@ export default function Groups(){
                                                                     setActiveMenu(null);
                                                                     handleEdit(e, group)}
                                                                 }
-                                                                className="dropdown-item bg-primary-subtle text-primary rounded px-2 py-1 d-flex align-items-center gap-2 fw-semibold mb-2"
+                                                                className="dropdown-item dropdown-edit-item rounded px-2 py-1 d-flex align-items-center gap-2 fw-semibold mb-2"
                                                             >
                                                                 <Edit size={22} /> Edit
                                                             </Button>
                                                             <Button
-                                                                className="dropdown-item bg-danger-subtle text-danger rounded px-2 py-1 d-flex align-items-center gap-2 fw-semibold"
+                                                                className="dropdown-item dropdown-delete-item rounded px-2 py-1 d-flex align-items-center gap-2 fw-semibold"
                                                                 onClick={(e) => {
                                                                     setActiveMenu(null);
                                                                     handleDelete(e, group)}
@@ -351,21 +378,29 @@ export default function Groups(){
                                                         </div>
                                                     )}
                                                 </div>
-                                                
-
                                             </div>
 
-                                            <div className="d-flex flex-column gap-2 mb-0">
-                                                <div className="d-flex gap-2">
-                                                    <span>Total Members:</span>
-                                                    <span>{group.totalMembers}</span>
+                                            <div className="d-flex justify-content-between gap-2 mb-0">
+                                                <div className="d-flex align-self-start gap-2 align-items-center px-3 rounded-pill " style={{
+                                                    backgroundColor:"#F1E9FA",
+                                                    color: "#5F259F"
+                                                }}>
+                                                    <span className="" style={{
+                                                        color:"#5F259F"
+                                                    }}><FaUsers size={24}/> </span>
+                                                    <span className="fs-4">{group.totalMembers}</span>
+                                                    <span>Members</span>
                                                 </div>
-                                                 <small className="text-muted d-flex align-items-center gap-1 flex-wrap">
-                                                    <span>Created on</span>
-                                                    <DateFormatter
-                                                        date={group?.createdAt?.split("T")[0]}
-                                                    />
-                                                </small>
+                                                <div className="d-flex align-items-center gap-2" style={{color: "#77717E"}}>
+                                                    <span><Calendar /></span>
+                                                    <div className="d-flex flex-column">
+                                                        <span>Created on</span>
+                                                        <DateFormatter
+                                                            date={group?.createdAt?.split("T")[0]}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
                                             </div>
                                             
 
