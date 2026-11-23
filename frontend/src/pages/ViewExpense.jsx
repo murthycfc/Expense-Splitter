@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router"
 import { deleteExpense, editExpense, getExpense, getMembers } from "../api/apis";
 import Button from "../components/Button";
-import { ArrowLeft, Calendar, CircleDollarSign, ReceiptIndianRupee, Split, UserRound, Users } from "lucide-react";
+import { ArrowLeft, Calendar, CircleDollarSign, Home, ReceiptIndianRupee, Split, UserRound, Users } from "lucide-react";
 import Card from "../components/Card";
 import DateFormatter from "../utils/DateFormatter";
 import { Modal } from "react-bootstrap";
@@ -137,7 +137,7 @@ export default function ViewExpense(){
             <BreadCrumb 
                 items={[
                     {
-                        label:"Groups",
+                        label:<div className="d-flex align-items-center gap-1"><Home size={16}/>Groups</div>,
                         to:"/"
                     },
                     {

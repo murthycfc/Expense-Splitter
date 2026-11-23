@@ -1,4 +1,4 @@
-export default function Input({label,type,required,error,id,eye,startIcon,className,containerClassName="mb-3", ...props}){
+export default function Input({label,type,required,error,id,endIcon,height=42,startIcon,className,containerClassName="mb-3", ...props}){
     const isRadio = type==="radio";
     if(isRadio){
         return (
@@ -33,18 +33,19 @@ export default function Input({label,type,required,error,id,eye,startIcon,classN
                     )}
                 </label>
             )}
-            <div className="input-group d-flex">
-                {/* {startIcon &&(
-                    <span className="input-group-text bg-white">{startIcon}</span>
-                )} */}
+            <div className="input-with-icon">
+                {startIcon &&(
+                    <span className="input-start-icon">{startIcon}</span>
+                )}
                 <input 
-                    className={`form-control ${className ? className : ""}`}
+                    className={`form-control ${startIcon ? "ps-5 " : ""} ${className || ""}`}
                     type={type}
                     id={id}
+                    style={{height:`${height}px`}}
                     {...props}
                 />
-                {eye && (
-                    <span className="input-group-text bg-white p-0">{eye}</span>
+                {endIcon && (
+                    <span className="input-end-icon">{endIcon}</span>
                 )}
             </div>
             

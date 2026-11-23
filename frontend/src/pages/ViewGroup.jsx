@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import Card from "../components/Card";
 import { useNavigate, useParams } from "react-router";
 import { addExpense, addMembers, getExpenses, getGroup, getMemberBalances, getMembers, getNonMembers, getTotalExpenses, getTotoalExpenses, removeMember } from "../api/apis";
-import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, Delete, DollarSign, EllipsisVertical, Receipt, ReceiptPoundSterling, Trash, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, Delete, DollarSign, EllipsisVertical, Home, Receipt, ReceiptPoundSterling, Search, Trash, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
 import Button from "../components/Button";
 import DateFormatter from "../utils/DateFormatter";
 import Input from "../components/Input";
@@ -285,7 +285,7 @@ export default function ViewGroup(){
             <BreadCrumb 
                 items={[
                     {
-                        label:"Groups",
+                        label:<div className="d-flex align-items-center gap-1 "><Home size={16} />Groups</div>,
                         to:"/"
                     },
                     {
@@ -358,7 +358,7 @@ export default function ViewGroup(){
                         <div className="col-12 col-sm-6 col-lg-4">
                             <SummaryCard 
                                 title="Total Amount"
-                                value={`₹${totalExpenseAmount}`}
+                                value={`₹${totalExpenseAmount?.toFixed(2)}`}
                                 description="Total amount spent in this group"
                                 icon={<Wallet />}
                             />
@@ -387,7 +387,7 @@ export default function ViewGroup(){
                                         <span>₹</span>
                                         <span>{memberBalances.find(memberBalance =>
                                     memberBalance.userId===localStorage.getItem("id")
-                                    )?.totalPaid ?? 0}</span>
+                                    )?.totalPaid?.toFixed(2) ?? 0}</span>
                                     </div>
                                 }
                                 valueColor ="text-success"
@@ -866,6 +866,7 @@ export default function ViewGroup(){
                                         setEmailSearch(e.target.value)
                                     }}
                                     containerClassName="mb-2"
+                                    startIcon={<Search size={20} className="text-muted"/>}
                                 />
                                 {emailSearch && (
                                     <Button

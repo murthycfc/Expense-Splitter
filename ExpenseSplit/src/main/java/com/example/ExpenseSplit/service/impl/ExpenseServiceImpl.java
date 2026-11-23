@@ -280,7 +280,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             Group group = expense.getGroup();
 
-            if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
+            if(!expense.getCreatedBy().getId().equals(currentUser.getId()) && !expense.getPaidBy().getId().equals(currentUser.getId())){
                 throw new AccessDeniedException("You don't have access to edit this expense");
             }
 
@@ -454,7 +454,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
                 throw new AccessDeniedException("You don't have access to delete this expense");
             }
-
 
             expense.setDeleted(true);
             List<Participant> participants = participantRepository.getParticipantsByExpenseId(expense.getId().toString());

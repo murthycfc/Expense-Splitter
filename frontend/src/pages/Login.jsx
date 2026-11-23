@@ -80,7 +80,7 @@ export default function Login(){
                                     type="text"
                                     label="Email"
                                     required
-                                    placeholder="Enter Email"
+                                    placeholder="Enter your email"
                                     value={loginData.email}
                                     onChange={handleChange}
                                     error={errors.email}
@@ -90,11 +90,11 @@ export default function Login(){
                                     type={showPassword ? "text" : "password"}
                                     label="Password"
                                     required
-                                    placeholder="Enter Password"
+                                    placeholder="Enter your password"
                                     value={loginData.password}
                                     onChange={handleChange}
                                     error={errors.password}
-                                    eye={
+                                    endIcon={
                                         <Button
                                             type="button"
                                             onClick={()=>setShowPassword(!showPassword)}

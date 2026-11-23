@@ -31,7 +31,7 @@ public class GroupController {
     private final ExpenseFacade expenseFacade;
 
     @PostMapping("/createGroup")
-    public ResponseEntity<GroupCreationResponse> createGroup(@Valid @RequestBody GroupCreationRequest request){
+    public ResponseEntity<GroupResponse> createGroup(@Valid @RequestBody GroupCreationRequest request){
         return ResponseEntity.ok(groupFacade.createGroup(request));
     }
 

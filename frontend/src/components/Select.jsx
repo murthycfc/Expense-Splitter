@@ -1,7 +1,63 @@
 import ReactSelect,{components} from "react-select";
 import Button from "./Button";
 import { Square, SquareCheck } from "lucide-react";
+
+const CustomOption = (optionProps) => {
+    const {data, isSelected} = optionProps;
+    return(
+        <components.Option {...optionProps}>
+            <div className="d-flex justify-content-between mx-2">
+                <span>{data.label}</span>
+                {isSelected ? (
+                    <SquareCheck 
+                        size={19}
+                        color="#5F259F"
+                    />
+                ): (
+                    <Square 
+                        size={19}
+                        color="#777"
+                    />
+                )}
+            </div>
+        </components.Option>
+    )
+}
+const CustomMenu = (menuProps) => {
+    const { multiple, allSelected, handleAddAll } = menuProps.selectProps;
+    return (
+        <components.Menu {...menuProps}>
+           
+            {multiple && menuProps.options.length > 0 && (
+                <div 
+                    className="d-flex justify-content-between align-items-center mx-4"
+                >
+                    <span className="fw-semibold">
+                        {allSelected ? "All users selected" : "Select All"}
+                    </span>
+                    <Button
+                        type="button"
+                        onClick={handleAddAll}
+                    >
+                        {allSelected ? 
+                            <SquareCheck 
+                                color="#5F259F" 
+                                size={19} 
+                            /> 
+                            : 
+                            <Square 
+                                size={19}
+                                color="#777"
+                            />}
+                    </Button>
+                </div>
+            )}
+            {menuProps.children}
+        </components.Menu>
+    );
+};
 export default function Select({label,options=[], value, onChange,placeholder="Select", error, required, multiple=false, ...props }){
+
     function handleChange(selectedOption){
         if(multiple){
             const selectedValues = selectedOption?.map(option => option.value)
@@ -11,6 +67,7 @@ export default function Select({label,options=[], value, onChange,placeholder="S
             onChange(selectedOption?.value)
         }
     }
+
     const selectedValue = multiple ?
                                 options.filter(option => value?.includes(option.value))
                                 : options.find(option => option.value === value) || null;
@@ -27,43 +84,22 @@ export default function Select({label,options=[], value, onChange,placeholder="S
             onChange(options.map(option => option.value));
         }
     }
+
     const allSelected =
         options.length > 0 &&
         options.every(option => value?.includes(option.value));
 
-    const CustomMenu = (menuProps) => {
-        return (
-            <components.Menu {...menuProps}>
-                {multiple && options.length > 0 && (
-                    <div 
-                        className="d-flex justify-content-between align-items-center mx-3"
-                    >
-                        <span className="fw-semibold">
-                            {allSelected ? "All users selected" : "Select All"}
-                        </span>
-                        <Button
-                            type="button"
-                            onClick={handleAddAll}
-                        >
-                            {allSelected ? 
-                                <SquareCheck 
-                                    fill="green" 
-                                    color="white" 
-                                    size={26} 
-                                /> 
-                                : 
-                                <Square size={20}/>}
-                        </Button>
-                    </div>
-                )}
-                {menuProps.children}
-            </components.Menu>
-        );
-    };
-
-
-
     const customStyles = {
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isFocused ? "#aba6b05b" : "white",
+            color: "#333",
+            cursor: "pointer",
+            ":active": {
+                backgroundColor: "#F3ECFA"
+            }
+        }),
+
         valueContainer: (provided) => ({
             ...provided,
             flexWrap: "nowrap",
@@ -92,6 +128,7 @@ export default function Select({label,options=[], value, onChange,placeholder="S
                 </label>
                 
             )}
+
             <ReactSelect
                 options={options}
                 className="w-100"
@@ -101,11 +138,16 @@ export default function Select({label,options=[], value, onChange,placeholder="S
                 isMulti={multiple}
                 isClearable
                 closeMenuOnSelect={!multiple}
+                
                 styles={customStyles}
                 components={{
-                    Menu: CustomMenu
+                    Menu: CustomMenu,
+                    Option: CustomOption
                 }}
-                // isSearchable
+                hideSelectedOptions={false}
+                multiple={multiple}
+                allSelected={allSelected}
+                handleAddAll={handleAddAll}
                 {...props}
             >
             </ReactSelect>

@@ -33,7 +33,7 @@ public class GroupFacadeImpl implements GroupFacade {
     private final UserRepository userRepository;
 
     @Override
-    public GroupCreationResponse createGroup(GroupCreationRequest request) {
+    public GroupResponse createGroup(GroupCreationRequest request) {
         return groupService.createGroup(request);
     }
 

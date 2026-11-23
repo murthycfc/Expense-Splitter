@@ -10,7 +10,7 @@
 body {
     min-height: 100vh;
     /* background-color: 	#F7F3FF; */
-    background-image: url("/expense_splitter_bg.png");
+    background-image: url("/expense_splitter_bg1.png");
 }
 
 .app-navbar {
@@ -174,13 +174,13 @@ body {
 }
 
 .participant-name-col{
-    width: 40%;
+    width: 34%;
 }
 .partcipant-percentage-col{
-    width: 30%;
+    width: 33%;
 }
 .participant-amount-col{
-    width: 30%;
+    width: 33%;
 }
 
 
@@ -306,27 +306,42 @@ body {
         height: 10px;
     }
 }
-/* 
-.breadcrumb {
-    font-size: 14px;
-} */
+
 
 .breadcrumb-item a {
-    color: #fff !important;
-    text-decoration: none;
+    color: #000 !important;
     font-weight: 500;
+    text-decoration: none;
 }
 
 .breadcrumb-item a:hover {
-    color: #3D1765 !important;
+    color: #2f0cda !important;
+    text-decoration: underline;
 }
 
-.breadcrumb-item.active {
-    color: #15803D !important;
-    font-weight: 700;
+.input-with-icon{
+    position: relative;
+}   
+
+.input-start-icon{
+    position:absolute;
+    left:15px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    pointer-events: none;
 }
 
-.breadcrumb-item + .breadcrumb-item::before {
-    margin-top: 4px;
-    color: #75618B;
+.input-end-icon{
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.input-with-icon .form-control{
+    border-radius: 10px;
 }

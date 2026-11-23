@@ -79,7 +79,7 @@ export default function Registration(){
                                         type="text"
                                         label="Name"
                                         required
-                                        placeholder="Enter Name"
+                                        placeholder="Enter your name"
                                         value={registerData.name}
                                         onChange={handleChange}
                                         error={errors.name}
@@ -103,7 +103,7 @@ export default function Registration(){
                                         type="text"
                                         label="Email"
                                         required
-                                        placeholder="Enter Email"
+                                        placeholder="Enter your email"
                                         value={registerData.email}
                                         onChange={handleChange}
                                         error={errors.email}
@@ -119,7 +119,7 @@ export default function Registration(){
                                         value={registerData.password}
                                         onChange={handleChange}
                                         error={errors.password}
-                                        eye={
+                                        endIcon={
                                             <Button
                                                 type="button"
                                                 onClick={()=>setShowPassword(!showPassword)}
@@ -140,7 +140,7 @@ export default function Registration(){
                                         value={registerData.confirmPassword}
                                         onChange={handleChange}
                                         error={errors.confirmPassword}
-                                        eye={
+                                        endIcon={
                                             <Button
                                                 type="button"
                                                 onClick={()=>setShowConfirmPassword(!showConfirmPassword)}

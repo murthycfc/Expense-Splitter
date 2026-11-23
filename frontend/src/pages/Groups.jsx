@@ -187,11 +187,6 @@ export default function Groups(){
 
     return (
         <div className="container my-4">
-            <BreadCrumb 
-                items={[
-                    {label: "Groups"}
-                ]}
-            />
             <div className="d-flex flex-column gap-3">
                 <div className="d-flex justify-content-between align-items-center ">
                     <div className="d-flex align-items-center gap-3">
@@ -224,7 +219,7 @@ export default function Groups(){
                     </Button> */}
                 </div>
                     {/* <Card> */}
-                        <div className="row g-3">
+                        <div className="row g-3 align-items-center">
                             <div className="col-9 col-md-6 ">
                                 <Input 
                                     id="name"
@@ -234,14 +229,15 @@ export default function Groups(){
                                     onChange={(e)=>{
                                         setGroupName(e.target.value);
                                     }}
+                                    height={48}
                                     containerClassName="mb-0"
-                                    startIcon={<Search size={18} className="text-muted"/>}
+                                    startIcon={<Search size={20} className="text-muted"/>}
                                 />
                                 
                             </div>
                             <div className="col-3 col-md-2">
                                 <Button 
-                                    className="btn-phonepe hover-scale  px-3 px-md-4"
+                                    className="btn-phonepe hover-scale  px-3 py-2 px-md-4"
                                     onClick={()=>fetchGroups(groupName,0)}
                                 >
                                     Search
@@ -261,18 +257,6 @@ export default function Groups(){
                     <Card>
                         {groups.length === 0 && (
                             <div className="text-center py-3">
-                                {/* <div 
-                                    className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                                    style={{ width: "56px", height: "56px", backgroundColor: "#f3e8ff", color: "#5F259F" }}
-                                >
-                                    <FaUsers size={26} />
-                                </div> */}
-                                {/* <h6 className="fw-bold mb-1">No groups found</h6> */}
-                                {/* <p className="text-muted small mb-0">
-                                    {groupName 
-                                        ? `No groups matched "${groupName}". Try a different search.` 
-                                        : "You don't have any groups yet. Click 'Create Group' to get started."}
-                                </p> */}
                                 <img 
                                     src="/no_groups.png"
                                     alt="No Groups Found"
@@ -288,10 +272,7 @@ export default function Groups(){
                                         onClick={() => handleView(group.id)}
                                         className={`group-card h-100  ${activeMenu===group.id ? "active-dropdown-card": ""}` }
                                         style={{
-                                            background: "#FCFAFF"
-                                            //  backgroundImage: "url('/group-bg.png')",
-                                            //  backgroundSize: "cover",
-                                            
+                                            background: "#FCFAFF"                                            
                                         }}
                                     >
                                         <div className="d-flex flex-column gap-1 h-100">
@@ -380,8 +361,8 @@ export default function Groups(){
                                                 </div>
                                             </div>
 
-                                            <div className="d-flex justify-content-between gap-2 mb-0">
-                                                <div className="d-flex align-self-start gap-2 align-items-center px-3 rounded-pill " style={{
+                                            <div className="d-flex justify-content-between align-items-center gap-2 mb-0">
+                                                <div className="d-flex  gap-2 align-items-center px-3 rounded-pill " style={{
                                                     backgroundColor:"#F1E9FA",
                                                     color: "#5F259F"
                                                 }}>

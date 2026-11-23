@@ -46,7 +46,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupCreationResponse createGroup(GroupCreationRequest request) {
+    public GroupResponse createGroup(GroupCreationRequest request) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
@@ -59,10 +59,11 @@ public class GroupServiceImpl implements GroupService {
 
             //adding group member to group
             group.getGroupMembers().add(groupMember);
+            
 
             Group savedGroup = groupRepository.save(group);
 
-            return groupsMapper.toResponse(savedGroup);
+            return groupsMapper.toGroupResponse(savedGroup);
         } catch (Exception e) {
             log.error("An unexpected error occurred in createGroup {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
@@ -266,7 +267,6 @@ public class GroupServiceImpl implements GroupService {
             log.error("An unexpected error occurred in deleteMember {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
-
     }
 
     @Override

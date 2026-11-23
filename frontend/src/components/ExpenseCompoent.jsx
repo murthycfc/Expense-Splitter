@@ -163,7 +163,8 @@ export default function ExpenseCompoent({isEdit}){
                 participants:[]
             });
         } catch (error) {
-            setErrors({server:error?.response?.data?.message})
+            toast.error(error?.response?.data?.message);
+            // setErrors({server:error?.response?.data?.message})
         }
     }
     const totalPercentage = expenseData.participants.reduce(
@@ -248,8 +249,6 @@ export default function ExpenseCompoent({isEdit}){
                                     }))
                                 
                                     distributeEqually(updatedParticipants, value);
-                                
-                                    
                                     setErrors(prev => ({
                                         ...prev,
                                         paidBy: ""
@@ -317,13 +316,14 @@ export default function ExpenseCompoent({isEdit}){
                             {expenseData.status==="PERCENTAGE" && (
                                 <div className="table-responsive border rounded">
                                     <div className="m-2 m-md-3">
-                                        <span className="fs-4">Percentage Split – Assign a percentage share to each participant.</span>
+                                        <p className="fs-4 fw-semibold mb-0">Percentage Split </p>
+                                        <p className="fs-6">Assign a percentage share to each participant.</p>
                                     </div>
                                     
                                     <table className="table align-middle mb-0">
                                         <colgroup>
-                                                <col style={{width: "50%"}}/>
-                                                <col style={{width: "35%"}}/>
+                                                <col style={{width: "45%"}}/>
+                                                <col style={{width: "40%"}}/>
                                                 <col style={{width: "15%"}}/>
                                             </colgroup>
                                         <thead className="table-light">
@@ -354,7 +354,7 @@ export default function ExpenseCompoent({isEdit}){
                                                                     value={percentages[id] ?? ""}
                                                                     onChange={(e)=>{
                                                                         const value = e.target.value;
-                                                                        const newTotalPercentage = totalPercentage - (Number(percentages[id]) || 0) + (Number(value)||0);
+                                                                        
                                                                         if(Number(value)>100 ){
                                                                             return;
                                                                         }

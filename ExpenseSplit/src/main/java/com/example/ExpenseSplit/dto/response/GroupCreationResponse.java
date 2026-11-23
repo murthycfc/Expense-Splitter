@@ -3,6 +3,7 @@ package com.example.ExpenseSplit.dto.response;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -11,4 +12,6 @@ public class GroupCreationResponse {
     private UUID id;
     private String name;
     private String description;
+    private LocalDateTime createdAt;
+    private long totalMembers;
 }

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface GroupService {
-    GroupCreationResponse createGroup(GroupCreationRequest request);
+    GroupResponse createGroup(GroupCreationRequest request);
     List<GroupMemberResponse> addMember(Group group, AddMemberRequest request);
     Page<GroupResponse> getGroups(String name, Pageable pageable);
     GroupDetailsResponse getGroup(Group group);
