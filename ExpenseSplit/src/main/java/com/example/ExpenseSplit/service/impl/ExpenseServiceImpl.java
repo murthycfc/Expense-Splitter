@@ -83,8 +83,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                     if(percent==null){
                         throw new BadRequestException("Percentage is required for every participant");
                     }
-                    if(percent.compareTo(BigDecimal.ZERO)<=0){
-                        throw new BadRequestException("Percentage must be greater than 0");
+                    if(percent.compareTo(BigDecimal.ZERO)<0){
+                        throw new BadRequestException("Percentage must be greater than or equal to 0");
                     }
                     if(percent.compareTo(BigDecimal.valueOf(100))>0){
                         throw new BadRequestException("Percentage must be less than or equal to 100");
@@ -319,8 +319,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                     if(percent==null){
                         throw new BadRequestException("Percentage is required for every participant");
                     }
-                    if(percent.compareTo(BigDecimal.ZERO)<=0){
-                        throw new BadRequestException("Percentage must be greater than 0");
+                    if(percent.compareTo(BigDecimal.ZERO)<0){
+                        throw new BadRequestException("Percentage must be greater than or equal to 0");
                     }
                     if(percent.compareTo(BigDecimal.valueOf(100))>0){
                         throw new BadRequestException("Percentage must be less than or equal to 100");

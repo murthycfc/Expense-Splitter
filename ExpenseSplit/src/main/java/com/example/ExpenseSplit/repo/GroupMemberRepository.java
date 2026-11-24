@@ -23,6 +23,11 @@ select * from group_members where group_id=:groupId and is_deleted=false
     List<GroupMember> findMembersByGroupId(@Param("groupId") String groupId);
 
     @Query(value = """
+select * from group_members where group_id=:groupId
+""", nativeQuery = true)
+    List<GroupMember> findAllMembersByGroupId(@Param("groupId") String groupId);
+
+    @Query(value = """
 select exists( select 1 from group_members where group_id=:groupId and user_id=:userId and is_deleted=false)
 """, nativeQuery = true)
     Integer isMemberOfGroup(@Param("groupId") String groupId, @Param("userId") String userId);

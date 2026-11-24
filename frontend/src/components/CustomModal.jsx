@@ -1,7 +1,7 @@
 
 import { Modal } from "react-bootstrap";
 
-export default function CustomModal({show,onHide,title, size="md",centered="true",centerTitle,description, children}){
+export default function CustomModal({show,onHide,title, size="md",centered="true",centerTitle,description,icon, children}){
     return(
         <Modal
             show={show}
@@ -15,7 +15,12 @@ export default function CustomModal({show,onHide,title, size="md",centered="true
 
             >
                 <Modal.Title className={centerTitle ? "position-absolute top-50 start-50 translate-middle" : ""}>
-                    {title}
+                    <div className="d-flex align-items-center gap-2 ">
+                        {icon}
+                        {title}
+
+                    </div>
+                    
                     <p className="text-muted fs-6 mb-0">{description}</p>
                 </Modal.Title>
             </Modal.Header>

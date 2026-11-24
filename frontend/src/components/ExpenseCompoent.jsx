@@ -7,6 +7,7 @@ import CustomDatePicker from "./CustomDatePicker";
 import Select from "./Select";
 import Button from "./Button";
 import { toast } from "react-toastify";
+import { RotateCcw, RotateCw } from "lucide-react";
 
 export default function ExpenseCompoent({isEdit}){
     
@@ -25,6 +26,7 @@ export default function ExpenseCompoent({isEdit}){
 
     const [percentages, setPercentages] = useState({});
     const [members, setMembers] = useState([]);
+    const [lockedPercentages, setLockedPercentages] = useState(new Set());
 
     const [errors, setErrors] = useState({});
 
@@ -98,6 +100,8 @@ export default function ExpenseCompoent({isEdit}){
     }
 
     function distributeEqually(participantIds, paidBy=""){
+        setLockedPercentages(new Set());
+
         const totalPercentage = 100;
         const count = participantIds.length;
 
@@ -118,8 +122,48 @@ export default function ExpenseCompoent({isEdit}){
             const percentage = equalShare + (index===remainderAddIndex ? remainder : 0);
             updatedPercentages[id] = percentage.toFixed(2);
         });
-        console.log("distribute")
         setPercentages(updatedPercentages);
+    }
+
+    function handlePercentageChange(id, inputValue){
+        if(Number(inputValue)<0){
+            return;
+        }
+        const nextLocked = new Set(lockedPercentages);
+        nextLocked.add(id);
+        let lockedTotal = 0;
+
+        for(const participantId of expenseData.participants){
+            if(nextLocked.has(participantId)){
+                const percentage = participantId===id ? Number(inputValue) || 0 : Number(percentages[participantId]) || 0;
+                lockedTotal+=percentage;
+            }
+        }
+
+        // if(lockedTotal>100){
+        //     return;
+        // }
+
+        const remainingParticipants = expenseData.participants.filter(participantId => !nextLocked.has(participantId));
+        const remainingPercentage = Number((100-lockedTotal).toFixed(2));
+        const equalShare = remainingParticipants.length>0 ? Math.floor((remainingPercentage/remainingParticipants.length)*100)/100 : 0;
+        const remainder = Number((remainingPercentage-equalShare*remainingParticipants.length).toFixed(2));
+
+        setPercentages(prev => {
+            const updatedPercentages ={
+                ...prev,
+                [id]: inputValue
+            };
+
+            remainingParticipants.forEach((participantId, index)=>{
+                const percentage = equalShare + (index===0 ? remainder : 0);
+                updatedPercentages[participantId] = percentage.toFixed(2)>0 ? percentage.toFixed(2) : 0;
+            })
+            return updatedPercentages;
+        });
+
+        setLockedPercentages(nextLocked);
+
     }
 
     async function handleSubmit(e){
@@ -140,7 +184,7 @@ export default function ExpenseCompoent({isEdit}){
                 status: expenseData.status,
                 participants: expenseData.participants.map(id => ({
                     id: id,
-                    percent: percentages[id] || ""
+                    percent: percentages[id] || 0
                 }))
             }
             if(isEdit){
@@ -315,9 +359,22 @@ export default function ExpenseCompoent({isEdit}){
                         <div className="col-12 col-md-10  mt-4 mx-auto">
                             {expenseData.status==="PERCENTAGE" && (
                                 <div className="table-responsive border rounded">
-                                    <div className="m-2 m-md-3">
-                                        <p className="fs-4 fw-semibold mb-0">Percentage Split </p>
-                                        <p className="fs-6">Assign a percentage share to each participant.</p>
+                                    <div className="d-flex justify-content-between align-items-center mx-2 mx-md-3">
+                                        <div className="">
+                                            <p className="fs-4 fw-semibold mb-0">Percentage Split </p>
+                                            <p className="fs-6">Assign a percentage share to each participant.</p>
+                                        </div>
+                                        <div className="">
+                                            <Button 
+                                                type="button"
+                                                onClick={()=> distributeEqually(expenseData.participants, expenseData.paidBy)}> 
+                                                <div className="d-flex align-items-center gap-1">
+                                                    <RotateCw size={20} className="text-muted mt-1"/> 
+                                                    <span className="d-none d-md-block">Split Equally</span>
+                                                </div>
+                                                
+                                            </Button>
+                                        </div>
                                     </div>
                                     
                                     <table className="table align-middle mb-0">
@@ -354,14 +411,19 @@ export default function ExpenseCompoent({isEdit}){
                                                                     value={percentages[id] ?? ""}
                                                                     onChange={(e)=>{
                                                                         const value = e.target.value;
+                                                                        if(value===""){
+                                                                            setPercentages(prev=>({
+                                                                                ...prev,
+                                                                                [id]:""
+                                                                            }));
+                                                                            return;
+                                                                        }
                                                                         
                                                                         if(Number(value)>100 ){
                                                                             return;
                                                                         }
-                                                                        setPercentages(prev=>({
-                                                                            ...prev,
-                                                                            [id]: value
-                                                                        }))
+                                                                        
+                                                                        handlePercentageChange(id, value);
                                                                         setErrors(prev=>({
                                                                             ...prev,
                                                                             percentages:""

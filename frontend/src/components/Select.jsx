@@ -30,7 +30,7 @@ const CustomMenu = (menuProps) => {
            
             {multiple && menuProps.options.length > 0 && (
                 <div 
-                    className="d-flex justify-content-between align-items-center mx-4"
+                    className="d-flex justify-content-between align-items-center mx-2 mx-md-4"
                 >
                     <span className="fw-semibold">
                         {allSelected ? "All users selected" : "Select All"}

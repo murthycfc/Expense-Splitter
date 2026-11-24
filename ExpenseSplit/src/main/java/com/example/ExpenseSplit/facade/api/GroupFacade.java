@@ -25,4 +25,5 @@ public interface GroupFacade {
     Page<UserResponse> getNonMembers(UUID groupId, String email, Pageable pageable);
     BigDecimal getTotalExpenses(UUID groupId);
     List<MemberBalance> getMemberBalances(UUID groupId);
+    BalanceSummary viewBalanceSummary(UUID groupId, UUID userId);
 }

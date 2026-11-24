@@ -405,4 +405,74 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
+    @Override
+    public BalanceSummary viewBalanceSummary(Group group, User user) {
+        try {
+            User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
+            Integer memberOfGroup = groupMemberRepository.isMemberOfGroup(group.getId().toString(), currentUser.getId().toString());
+            if(memberOfGroup==0){
+                throw new BadRequestException("You don't have access to viewBalanceSummary");
+            }
+            List<GroupMember> groupMembers = groupMemberRepository.findAllMembersByGroupId(group.getId().toString());
+
+            BalanceSummary balanceSummary = new BalanceSummary();
+            balanceSummary.setName(user.getName());
+            balanceSummary.setEmail(user.getEmail());
+            List<BalanceSummaryItem> balanceSummaryItems = new ArrayList<>();
+            BigDecimal netBalance = BigDecimal.ZERO;
+            for(GroupMember groupMember : groupMembers){
+
+                User otherUser = groupMember.getUser();
+                if(otherUser.getId().equals(user.getId())){
+                    continue;
+                }
+                BigDecimal paid = getPaidAmount(group, user, otherUser);
+                BigDecimal share = getPaidAmount(group, otherUser, user);
+                BigDecimal total = paid.subtract(share);
+                netBalance = netBalance.add(total);
+
+                BalanceSummaryItem balanceSummaryItem = new BalanceSummaryItem();
+
+                if(total.compareTo(BigDecimal.ZERO)>0){
+                    balanceSummaryItem.setUserName(otherUser.getName());
+                    balanceSummaryItem.setAmount(total);
+                    balanceSummaryItem.setStatus(MemberBalanceStatus.RECEIVE);
+                    balanceSummaryItems.add(balanceSummaryItem);
+                }
+                else if(total.compareTo(BigDecimal.ZERO)<0){
+                    balanceSummaryItem.setUserName(otherUser.getName());
+                    balanceSummaryItem.setAmount(total);
+                    balanceSummaryItem.setStatus(MemberBalanceStatus.OWES);
+                    balanceSummaryItems.add(balanceSummaryItem);
+                }
+
+            }
+            balanceSummary.setNetBalance(netBalance);
+            balanceSummary.setBalanceSummaryItems(balanceSummaryItems);
+            return balanceSummary;
+        }
+        catch (BadRequestException e){
+            log.error("An error occurred viewBalanceSummary {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred viewBalanceSummary {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    private BigDecimal getPaidAmount(Group group, User payer, User participantUser){
+        BigDecimal total = BigDecimal.ZERO;
+        List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), payer.getId().toString());
+        for(Expense expense : paidExpenses){
+            List<Participant> participants = participantRepository.getExpenseParticipants(expense.getId().toString());
+            for(Participant participant : participants){
+                if(participant.getUser().getId().equals(participantUser.getId())){
+                    total = total.add(participant.getValue());
+                }
+            }
+        }
+        return total;
+    }
+
 }

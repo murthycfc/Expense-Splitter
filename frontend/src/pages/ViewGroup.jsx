@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import Card from "../components/Card";
 import { useNavigate, useParams } from "react-router";
-import { addExpense, addMembers, getExpenses, getGroup, getMemberBalances, getMembers, getNonMembers, getTotalExpenses, getTotoalExpenses, removeMember } from "../api/apis";
-import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, Delete, DollarSign, EllipsisVertical, Home, Receipt, ReceiptPoundSterling, Search, Trash, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
+import { addExpense, addMembers, getExpenses, getGroup, getMemberBalances, getMembers, getNonMembers, getTotalExpenses, getTotoalExpenses, getViewBalanceSummary, removeMember } from "../api/apis";
+import { ArrowLeft, ArrowRight, Calendar, CircleUserRound, CircleX, Delete, DollarSign, EllipsisVertical, Eye, Home, Receipt, ReceiptPoundSterling, Scale, Search, Trash, User, UserCheck, UserPlus, Users, UsersCollaboration, Wallet } from "lucide-react";
 import Button from "../components/Button";
 import DateFormatter from "../utils/DateFormatter";
 import Input from "../components/Input";
@@ -27,6 +27,9 @@ export default function ViewGroup(){
     });
     const [showExpensemodal, setShowExpenseModal] = useState(false)
     const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+    const [memberBalanceModal, setMemberBalanceModal] = useState(false);
+    const [deletingMember, setDeletingMember] = useState();
+    const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
     const [expenseData, setExpenseData] = useState({
         description:"",
         amount:"",
@@ -36,7 +39,6 @@ export default function ViewGroup(){
         participants:[]
     });
     const [percentages, setPercentages] = useState({});
-    const [viewMembersModal, setViewMembersModal] = useState(false);
 
     const [totalExpenseAmount, setTotalExpenseAmount] = useState();
     const [memberBalances, setMemberBalances] = useState([]);
@@ -53,7 +55,8 @@ export default function ViewGroup(){
     const [hasMore, setHasMore] = useState(true);
     const [emailSearch, setEmailSearch] = useState();
     const [activeMenu, setActiveMenu] = useState(null);
-
+    const [balanceSummary, setBalanceSummary] = useState();
+ 
     const observerTarget = useRef(null);
     const dropdownRef = useRef(null);
     const memberBalancesRef = useRef(null);
@@ -269,14 +272,26 @@ export default function ViewGroup(){
         }
     }
 
-    async function handleRemoveMember( userId) {
+    
+    async function handleRemoveMember() {
         try {
-            const data = await removeMember(groupId, userId);
+            const data = await removeMember(groupId, deletingMember?.userId);
             setMembers(prevMembers => prevMembers.filter(member => member.id!==data.userId))
-            setMemberBalances(prevMemberBalances => prevMemberBalances.filter(memberBalance => memberBalance.userId!==userId));
+            setMemberBalances(prevMemberBalances => prevMemberBalances.filter(memberBalance => memberBalance.userId!==deletingMember?.userId));
+            setShowRemoveMemberModal(false);
         } catch (error) {
             toast.error(error?.response?.data?.message ?? "Something went wrong")
-            // setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
+        }
+    }
+
+    async function handleViewMemberBalance(userId) {
+        try {
+            const data = await getViewBalanceSummary(groupId, userId);
+            setBalanceSummary(data);
+            setMemberBalanceModal(true);
+            console.log(data);
+        } catch (error) {
+            toast.error(error?.response?.data?.message ?? "Something went wrong")
         }
     }
 
@@ -293,13 +308,7 @@ export default function ViewGroup(){
                     }
                 ]}
             />
-            {/* <Button 
-                className="btn-phonepe hover-scale mb-3"
-                onClick={()=>navigate("/")}
-            >
-                <ArrowLeft /> Back
-            </Button> */}
-            {/* <Card> */}
+            
                 <Card style={{backgroundColor: "#7d35c9"}}>
                     <div className="text-white px-md-1" >
                         <div className="row align-items-center gx-2 gx-md-5">
@@ -350,9 +359,6 @@ export default function ViewGroup(){
                         </div>
                     </div>
                 </Card>
-
-                
-                
                 <Card className="mt-4" title="Group Summary" >
                     <div className="row g-3">
                         <div className="col-12 col-sm-6 col-lg-4">
@@ -471,14 +477,25 @@ export default function ViewGroup(){
                                                         position: "absolute",
                                                         top:"100%",
                                                         right:"0%",
-                                                        minWidth: "120px",
+                                                        minWidth: "140px",
                                                         borderRadius: "10px"
                                                     }}
                                                 >
                                                     <Button
                                                         onClick={()=>{
+                                                            handleViewMemberBalance(member.userId)
+                                                        }}
+                                                        className="dropdown-item dropdown-view-item d-flex align-items-center gap-1 rounded px-2 py-1 fw-semibold"
+                                                    >
+                                                        <Eye size={14}/>
+                                                        <span>Balance Summary</span>
+                                                    </Button>
+                                                    <Button
+                                                        onClick={()=>{
                                                             setActiveMenu(null);
-                                                            handleRemoveMember(member.userId);
+                                                            // handleRemoveMember(member.userId);
+                                                            setDeletingMember(member);
+                                                            setShowRemoveMemberModal(true);
                                                         }}
                                                         className="dropdown-item dropdown-delete-item d-flex align-items-center gap-1 rounded px-2 py-1 fw-semibold"
                                                     >
@@ -827,8 +844,6 @@ export default function ViewGroup(){
                             <Button
                                 className="btn-phonepe hover-scale"
                                 onClick={()=>{
-                                    // fetchMembers(groupId);
-                                    // setShowExpenseModal(true)
                                     navigate(`/groups/${groupId}/createExpense`)
                                 }}
 
@@ -839,8 +854,31 @@ export default function ViewGroup(){
                     </div>
                 </Card>
 
-                
-            {/* </Card> */}
+            <CustomModal
+                show={showRemoveMemberModal}
+                onHide={()=>{
+                    setShowRemoveMemberModal(false);
+                    setDeletingMember(null);
+                }}
+                title="Remove User"
+            >
+                <Modal.Body>
+                    <div className="">
+                        <span>Are you sure want to remove <span className="fw-bold">{deletingMember?.name}</span> from this group </span>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        className="btn-phonepe hover-scale"
+                        onClick={()=>{
+                            handleRemoveMember()
+                        }}
+                    >
+                        Remove
+                    </Button>
+                </Modal.Footer>
+
+            </CustomModal>
 
             <CustomModal
                 show={showAddMembersModal}
@@ -878,14 +916,6 @@ export default function ViewGroup(){
                             </div>
                             
                         </div>
-                        {/* <div className="col-3">
-                            <Button 
-                                className="btn-phonepe hover-scale w-100"
-                                onClick={()=>fetchNonMembers(emailSearch)}
-                            >
-                                Search
-                            </Button>
-                        </div> */}
                     </div>
                     
                     {nonMembers.length===0 ? (
@@ -1000,6 +1030,94 @@ export default function ViewGroup(){
                         Confirm
                     </Button>
                 </Modal.Footer>
+            </CustomModal>
+
+            <CustomModal
+                show={memberBalanceModal}
+                onHide={()=>{
+                    setMemberBalanceModal(false);
+                    setErrors({})
+                    setActiveMenu(null);
+                }}
+                title="Balance Summary"
+                icon={<Scale style={{color:"#2c4adf"}}/>}
+                size="lg"
+            >
+                <Modal.Body>
+                    <div className="d-flex flex-column gap-2">
+                        <Card 
+                            style={{
+                                backgroundColor:"#eee3fb"
+                            }}
+                        >
+                            <div className="d-flex justify-content-between ">
+                                <div className="d-flex align-items-center gap-1 gap-md-2">
+                                    <img 
+                                        src="/profile12.png"
+                                        style={{
+                                            maxWidth:"50px"
+                                        }}
+                                    />
+                                    <div className="d-flex flex-column">
+                                        <span>{balanceSummary?.name}</span>
+                                        <span>{balanceSummary?.email}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="d-flex flex-column align-items-center gap-1">
+                                    <span>Net Balance</span>
+                                    <span className={`${Number(balanceSummary?.netBalance)>0 ? 'text-success' : Number(balanceSummary?.netBalance)<0 ? 'text-danger' : 'text-muted'} fw-bold` }>₹{Math.abs(Number(balanceSummary?.netBalance)).toFixed(2)}</span>
+                                    {/* <span className={`badge rounded-pill px-2 py-2 fs-6 ${Number(balanceSummary?.netBalance)>0 ? 'text-success bg-success-subtle' : Number(balanceSummary?.netBalance)<0 ? 'text-danger bg-danger-subtle' : 'text-muted bg-secondary-subtle'} fw-semibold` }>{Number(balanceSummary?.netBalance)>0 ? 'You will receive': Number(balanceSummary?.netBalance)<0 ? 'You need to pay': 'settled'}</span> */}
+                                </div>
+                            </div>
+                        </Card>
+                        <div>
+                            {balanceSummary?.balanceSummaryItems.length===0 ?(
+                                <div className="d-flex justify-content-center mt-3">
+                                    <img 
+                                        src="/all_set.png"
+                                        style={{
+                                            maxWidth:"420px"
+                                        }}
+                                    />
+                                </div>
+                            ):(
+                                <div className="table-responsive rounded">
+                                    <table className="table align-middle">
+                                        <colgroup>
+                                            <col className="balance-summary-name"/>
+                                            <col className="balance-summary-message"/>
+                                            <col className="balance-summary-amount"/>
+                                        </colgroup>
+                                        <tbody>
+                                            {balanceSummary?.balanceSummaryItems.map((summaryItem, index)=>(
+                                                <tr
+                                                    key={index}
+                                                >
+                                                    <td>
+                                                        <div className="d-flex align-items-center gap-1">
+                                                            <img 
+                                                                src="/profile_pic.png"
+                                                                style={{
+                                                                    maxWidth:"30px"
+                                                                }}
+                                                            />
+                                                            {summaryItem?.userName}
+                                                        </div>
+                                                    </td>
+                                                    <td><span>{balanceSummary?.name}{' '} {Number(summaryItem?.amount)>0 ? 'gets back' : 'needs to pay'}</span></td>
+                                                    <td ><span className={`${Number(summaryItem?.amount)>0 ? 'text-success' :  'text-danger'} fw-bold`} > ₹{Math.abs(Number(summaryItem?.amount)).toFixed(2)}</span></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Modal.Body>
+
             </CustomModal>
         </div>
     )

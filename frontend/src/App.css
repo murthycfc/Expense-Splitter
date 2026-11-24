@@ -57,6 +57,14 @@ body {
     color: var(--bs-danger);
     transform: scale(1.03);
 }
+.dropdown-view-item{
+    transition: all 0.2s ease;
+}
+.dropdown-view-item:hover{
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+    transform: scale(1.03);
+}
 .hover-scale {
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
@@ -345,3 +353,9 @@ body {
 .input-with-icon .form-control{
     border-radius: 10px;
 }
+
+
+
+
+
+

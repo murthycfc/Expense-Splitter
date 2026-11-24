@@ -10,6 +10,7 @@ import com.example.ExpenseSplit.exception.ResourceNotFoundException;
 import com.example.ExpenseSplit.facade.api.GroupFacade;
 import com.example.ExpenseSplit.model.Group;
 import com.example.ExpenseSplit.model.User;
+import com.example.ExpenseSplit.repo.GroupMemberRepository;
 import com.example.ExpenseSplit.repo.GroupRepository;
 import com.example.ExpenseSplit.repo.UserRepository;
 import com.example.ExpenseSplit.service.api.GroupService;
@@ -31,6 +32,7 @@ public class GroupFacadeImpl implements GroupFacade {
     private final GroupRepository groupRepository;
     private final GroupService groupService;
     private final UserRepository userRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Override
     public GroupResponse createGroup(GroupCreationRequest request) {
@@ -188,6 +190,30 @@ public class GroupFacadeImpl implements GroupFacade {
         }
         catch (Exception e) {
             log.error("An unexpected error occurred in getMemberBalances {}", e.getMessage());
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    @Override
+    public BalanceSummary viewBalanceSummary(UUID groupId, UUID userId) {
+        try {
+            Group group = groupRepository.findByGroupId(groupId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("Group not found"));
+
+            User user = userRepository.findByUserId(userId.toString())
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+            Integer requestedUserIsMember = groupMemberRepository.isMemberOfGroup(groupId.toString(), userId.toString());
+            if(requestedUserIsMember==0){
+                throw new BadRequestException("Requested user is not a member of this group");
+            }
+            return groupService.viewBalanceSummary(group, user);
+        }
+        catch (ResourceNotFoundException | BadRequestException e){
+            log.error("An error occurred in viewBalanceSummary {}", e.getMessage());
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("An unexpected error occurred in viewBalanceSummary {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
         }
     }

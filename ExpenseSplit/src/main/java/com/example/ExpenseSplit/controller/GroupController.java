@@ -108,4 +108,9 @@ public class GroupController {
     public ResponseEntity<List<MemberBalance>> getMemberBalances(@PathVariable UUID groupId){
         return ResponseEntity.ok(groupFacade.getMemberBalances(groupId));
     }
+
+    @GetMapping("{groupId}/viewBalanceSummary")
+    public ResponseEntity<BalanceSummary> viewBalanceSummary(@PathVariable UUID groupId, @RequestParam UUID userId){
+        return ResponseEntity.ok(groupFacade.viewBalanceSummary(groupId, userId));
+    }
 }

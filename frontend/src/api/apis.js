@@ -87,6 +87,11 @@ export async function addMembers(groupId, request) {
     return response.data;
 }
 
+export async function getViewBalanceSummary(groupId, userId) {
+    const response = await apiClient.get(`/api/groups/${groupId}/viewBalanceSummary`,{params:{userId}});
+    return response.data;
+}
+
 export async function getAllExpenses() {
     const response = await apiClient.get(`${BASE_URL}/api/getAllExpenses`);
     return response.data;
@@ -101,6 +106,8 @@ export async function getTotoalExpenses() {
     const response = await apiClient.get(`${BASE_URL}/api/getTotoalExpenses`);
     return response.data;
 }
+
+
 
 export async function deleteUser(userId) {
     const response = await apiClient.delete(`${BASE_URL}/api/deleteUser/${userId}`)
@@ -124,6 +131,8 @@ export async function removeMember(groupId, userId) {
     const response = await apiClient.delete(`/api/groups/${groupId}/delete/${userId}`);
     return response.data;
 }
+
+
 
 
 // export async function getExpense(expenseId) {

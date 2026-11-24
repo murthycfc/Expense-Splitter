@@ -25,4 +25,5 @@ public interface GroupService {
     Page<UserResponse> getNonMembers(Group group, String email, Pageable pageable);
     BigDecimal getTotalExpenses(Group group);
     List<MemberBalance> getMemberBalances(Group group);
+    BalanceSummary viewBalanceSummary(Group group, User user);
 }
