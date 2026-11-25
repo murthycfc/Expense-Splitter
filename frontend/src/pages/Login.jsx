@@ -46,6 +46,7 @@ export default function Login(){
             localStorage.setItem("role", data.role);
             localStorage.setItem("token", data.token);
             localStorage.setItem("id", data.id);
+            localStorage.setItem("email", data.email);
             navigate("/");
             toast.success("Logged in successfully!")
         } catch (error) {

@@ -1102,10 +1102,10 @@ export default function ViewGroup(){
                                                                     maxWidth:"30px"
                                                                 }}
                                                             />
-                                                            {summaryItem?.userName}
+                                                            {summaryItem?.userEmail===localStorage.getItem("email")? "You" : summaryItem?.userName}
                                                         </div>
                                                     </td>
-                                                    <td><span>{balanceSummary?.name}{' '} {Number(summaryItem?.amount)>0 ? 'gets back' : 'needs to pay'}</span></td>
+                                                    <td><span>{balanceSummary?.email===localStorage.getItem("email")? `You ${Number(summaryItem?.amount)>0 ? 'get back' : 'need to pay'}` : `${balanceSummary?.name} ${Number(summaryItem?.amount)>0 ? 'gets back' : 'needs to pay'}`}</span></td>
                                                     <td ><span className={`${Number(summaryItem?.amount)>0 ? 'text-success' :  'text-danger'} fw-bold`} > ₹{Math.abs(Number(summaryItem?.amount)).toFixed(2)}</span></td>
                                                 </tr>
                                             ))}

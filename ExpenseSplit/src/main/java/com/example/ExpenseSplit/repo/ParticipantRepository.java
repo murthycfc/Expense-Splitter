@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +37,13 @@ select * from expense_participants where expense_id=:expenseId and is_deleted=fa
 select * from expense_participants where expense_id=:expenseId
 """, nativeQuery = true)
     List<Participant> getParticipantsByExpenseId(@Param("expenseId") String expenseId);
+
+    @Query(value = """
+select coalesce(sum(p.value), 0) from expenses e join expense_participants p on e.id=p.expense_id
+    where e.group_id=:groupId and e.paid_by_id=:payerId and p.user_id=:participantId
+    and e.is_deleted=false and p.is_deleted=false
+""", nativeQuery = true)
+    BigDecimal getTotalParticipantShare(String groupId, String payerId, String participantId);
 }
 
 

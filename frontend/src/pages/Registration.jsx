@@ -51,6 +51,7 @@ export default function Registration(){
             localStorage.setItem("role", data.role);
             localStorage.setItem("token", data.token);
             localStorage.setItem("id", data.id);
+            localStorage.setItem("email", data.email);
             navigate("/");
             toast.success("Registered successfully!")
         } catch (error) {

@@ -435,17 +435,16 @@ public class GroupServiceImpl implements GroupService {
 
                 if(total.compareTo(BigDecimal.ZERO)>0){
                     balanceSummaryItem.setUserName(otherUser.getName());
+                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
                     balanceSummaryItem.setAmount(total);
-                    balanceSummaryItem.setStatus(MemberBalanceStatus.RECEIVE);
                     balanceSummaryItems.add(balanceSummaryItem);
                 }
                 else if(total.compareTo(BigDecimal.ZERO)<0){
                     balanceSummaryItem.setUserName(otherUser.getName());
+                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
                     balanceSummaryItem.setAmount(total);
-                    balanceSummaryItem.setStatus(MemberBalanceStatus.OWES);
                     balanceSummaryItems.add(balanceSummaryItem);
                 }
-
             }
             balanceSummary.setNetBalance(netBalance);
             balanceSummary.setBalanceSummaryItems(balanceSummaryItems);
@@ -463,16 +462,27 @@ public class GroupServiceImpl implements GroupService {
 
     private BigDecimal getPaidAmount(Group group, User payer, User participantUser){
         BigDecimal total = BigDecimal.ZERO;
-        List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), payer.getId().toString());
-        for(Expense expense : paidExpenses){
-            List<Participant> participants = participantRepository.getExpenseParticipants(expense.getId().toString());
-            for(Participant participant : participants){
-                if(participant.getUser().getId().equals(participantUser.getId())){
-                    total = total.add(participant.getValue());
-                }
-            }
-        }
-        return total;
+//        List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), payer.getId().toString());
+
+//        for(Expense expense : paidExpenses){
+//            List<Participant> participants = participantRepository.getExpenseParticipants(expense.getId().toString());
+//            for(Participant participant : participants){
+//                if(participant.getUser().getId().equals(participantUser.getId())){
+//                    total = total.add(participant.getValue());
+//                }
+//            }
+//        }
+
+//        for(Expense expense : paidExpenses){
+//            BigDecimal amount = expenseRepository.getBalanceAmountBetween(expense.getId().toString(),
+//                    payer.getId().toString(), participantUser.getId().toString());
+//
+//            total = total.add(amount!=null ? amount : BigDecimal.ZERO);
+//        }
+        return participantRepository.getTotalParticipantShare(group.getId().toString(),
+                payer.getId().toString(), participantUser.getId().toString());
+
+
     }
 
 }

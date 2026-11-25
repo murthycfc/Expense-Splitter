@@ -10,6 +10,6 @@ import java.math.BigDecimal;
 @Setter
 public class BalanceSummaryItem {
     private String userName;
+    private String userEmail;
     private BigDecimal amount;
-    private MemberBalanceStatus status;
 }
