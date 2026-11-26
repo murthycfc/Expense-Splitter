@@ -15,6 +15,6 @@ public class ParticipantRequest {
 
     @NotNull(message = "Participant is required")
     private UUID id;
-
+    private BigDecimal share;
     private BigDecimal percent;
 }

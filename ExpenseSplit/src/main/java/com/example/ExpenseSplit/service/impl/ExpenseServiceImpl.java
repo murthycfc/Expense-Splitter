@@ -119,7 +119,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             BigDecimal amount = request.getAmount();
             int participantSize = request.getParticipants().size();
             List<Participant> participants = new ArrayList<>();
-            BigDecimal total = BigDecimal.ZERO;
+//            BigDecimal total = BigDecimal.ZERO;
 
             for(ParticipantRequest participantRequest : request.getParticipants()){
                 User participantUser = participantUsers.get(participantRequest.getId());
@@ -132,27 +132,28 @@ public class ExpenseServiceImpl implements ExpenseService {
 
                     BigDecimal share = amount.multiply(participantRequest.getPercent()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
                     participant.setValue(share);
-                    total = total.add(share);
+//                    total = total.add(share);
                 }
                 else {
-                    BigDecimal splitAmount = amount.divide(BigDecimal.valueOf(participantSize),2, RoundingMode.HALF_UP);
+//                    BigDecimal splitAmount = amount.divide(BigDecimal.valueOf(participantSize),2, RoundingMode.HALF_UP);
+                    BigDecimal splitAmount = participantRequest.getShare();
                     participant.setValue(splitAmount);
-                    total = total.add(splitAmount);
+//                    total = total.add(splitAmount);
                 }
                 participants.add(participant);
             }
 
-            BigDecimal remainingAmount = amount.subtract(total);
-            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
-                Participant payer =  participants.stream().filter(p-> p.getUser().getId().equals(request.getPaidBy())).findFirst().orElse(null);
-                if(payer!=null){
-                    payer.setValue(payer.getValue().add(remainingAmount));
-                }
-                else {
-                    Participant firstParticipant = participants.get(0);
-                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
-                }
-            }
+//            BigDecimal remainingAmount = amount.subtract(total);
+//            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
+//                Participant payer =  participants.stream().filter(p-> p.getUser().getId().equals(request.getPaidBy())).findFirst().orElse(null);
+//                if(payer!=null){
+//                    payer.setValue(payer.getValue().add(remainingAmount));
+//                }
+//                else {
+//                    Participant firstParticipant = participants.get(0);
+//                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
+//                }
+//            }
 
             expense.setParticipants(participants);
             Expense savedExpense = expenseRepository.save(expense);
@@ -362,7 +363,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             BigDecimal amount = request.getAmount();
             int participantSize = participantRequests.size();
             BigDecimal equalsAmount = amount.divide(BigDecimal.valueOf(participantSize), 2, RoundingMode.HALF_UP);
-            BigDecimal total = BigDecimal.ZERO;
+//            BigDecimal total = BigDecimal.ZERO;
             List<Participant> updatedParticipants = new ArrayList<>();
 
 
@@ -379,7 +380,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
                 participant.setDeleted(false);
                 if (status == Status.EQUAL) {
-                    participant.setValue(equalsAmount);
+                    participant.setValue(participantRequest.getShare());
                     participant.setPercent(null);
                 }
                 else{
@@ -390,24 +391,24 @@ public class ExpenseServiceImpl implements ExpenseService {
 
                     participant.setValue(share);
                 }
-                total = total.add(participant.getValue());
+//                total = total.add(participant.getValue());
                 updatedParticipants.add(participant);
             }
-            BigDecimal remainingAmount = amount.subtract(total);
-            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
-                Participant payer = updatedParticipants.stream()
-                        .filter(p -> p.getUser().getId().equals(paidByUser.getId()))
-                        .findFirst()
-                        .orElse(null);
-                if(payer!=null){
-                    payer.setValue(payer.getValue().add(remainingAmount));
-                }
-                else{
-                    Participant firstParticipant = updatedParticipants.get(0);
-                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
-                }
-                participantRepository.saveAll(updatedParticipants);
-            }
+//            BigDecimal remainingAmount = amount.subtract(total);
+//            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
+//                Participant payer = updatedParticipants.stream()
+//                        .filter(p -> p.getUser().getId().equals(paidByUser.getId()))
+//                        .findFirst()
+//                        .orElse(null);
+//                if(payer!=null){
+//                    payer.setValue(payer.getValue().add(remainingAmount));
+//                }
+//                else{
+//                    Participant firstParticipant = updatedParticipants.get(0);
+//                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
+//                }
+//                participantRepository.saveAll(updatedParticipants);
+//            }
 
             Expense savedExpense = expenseRepository.save(expense);
             ExpenseResponse response = new ExpenseResponse();

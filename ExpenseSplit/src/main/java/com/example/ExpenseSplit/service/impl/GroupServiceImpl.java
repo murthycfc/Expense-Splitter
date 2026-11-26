@@ -337,6 +337,7 @@ public class GroupServiceImpl implements GroupService {
                     totalExpense = totalExpense.add(expense.getAmount());
                 }
             }
+
             return totalExpense;
         }
         catch (BadRequestException e){
@@ -432,19 +433,26 @@ public class GroupServiceImpl implements GroupService {
                 netBalance = netBalance.add(total);
 
                 BalanceSummaryItem balanceSummaryItem = new BalanceSummaryItem();
+                if(total.compareTo(BigDecimal.ZERO)!=0){
+                    balanceSummaryItem.setUserName(otherUser.getName());
+                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
+                    balanceSummaryItem.setAmount(total);
+                    balanceSummaryItems.add(balanceSummaryItem);
+                }
 
-                if(total.compareTo(BigDecimal.ZERO)>0){
-                    balanceSummaryItem.setUserName(otherUser.getName());
-                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
-                    balanceSummaryItem.setAmount(total);
-                    balanceSummaryItems.add(balanceSummaryItem);
-                }
-                else if(total.compareTo(BigDecimal.ZERO)<0){
-                    balanceSummaryItem.setUserName(otherUser.getName());
-                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
-                    balanceSummaryItem.setAmount(total);
-                    balanceSummaryItems.add(balanceSummaryItem);
-                }
+//                if(total.compareTo(BigDecimal.ZERO)>0){
+//                    balanceSummaryItem.setUserName(otherUser.getName());
+//                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
+//                    balanceSummaryItem.setAmount(total);
+//                    balanceSummaryItems.add(balanceSummaryItem);
+//                }
+//                else if(total.compareTo(BigDecimal.ZERO)<0){
+//                    balanceSummaryItem.setUserName(otherUser.getName());
+//                    balanceSummaryItem.setUserEmail(otherUser.getEmail());
+//                    balanceSummaryItem.setAmount(total);
+//                    balanceSummaryItems.add(balanceSummaryItem);
+//                }
+                log.debug("total {}", total);
             }
             balanceSummary.setNetBalance(netBalance);
             balanceSummary.setBalanceSummaryItems(balanceSummaryItems);
@@ -461,7 +469,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private BigDecimal getPaidAmount(Group group, User payer, User participantUser){
-        BigDecimal total = BigDecimal.ZERO;
+//        BigDecimal total = BigDecimal.ZERO;
 //        List<Expense> paidExpenses = expenseRepository.findPaidExpenses(group.getId().toString(), payer.getId().toString());
 
 //        for(Expense expense : paidExpenses){

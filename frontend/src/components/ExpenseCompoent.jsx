@@ -8,6 +8,7 @@ import Select from "./Select";
 import Button from "./Button";
 import { toast } from "react-toastify";
 import { RotateCcw, RotateCw } from "lucide-react";
+import { all } from "axios";
 
 export default function ExpenseCompoent({isEdit}){
     
@@ -25,8 +26,9 @@ export default function ExpenseCompoent({isEdit}){
     
 
     const [percentages, setPercentages] = useState({});
+    const [shares, setShares] = useState({});
     const [members, setMembers] = useState([]);
-    const [lockedPercentages, setLockedPercentages] = useState(new Set());
+    const [lockedParticipants, setLockedParticipants] = useState(new Set());
 
     const [errors, setErrors] = useState({});
 
@@ -36,11 +38,21 @@ export default function ExpenseCompoent({isEdit}){
             if(isEdit){
                 fetchExpense(expenseId);
             }
+            
         } catch (error) {
             setErrors({server: error?.response?.data?.message ?? "Something went wrong"})
         }
         
     },[groupId, expenseId]);
+    useEffect(()=>{
+        if(!isEdit && members.length>0){
+            const allMembers = members.map(member => member.id);
+            setExpenseData(prev =>({
+                ...prev,
+                participants: allMembers
+            }))
+        }
+    },[members, isEdit])
 
 
     
@@ -61,11 +73,21 @@ export default function ExpenseCompoent({isEdit}){
             });
 
             const initialPercentagesObj = {};
+            const initialSharesObj = {};
+            
             expense.participants.forEach(participant => {
-                initialPercentagesObj[participant.userId] =
-                    participant.percent ?? "";
+                {expense.status === "PERCENTAGE" ? (
+                    initialPercentagesObj[participant.userId] =
+                    participant.percent ?? ""
+                ) : (
+                    initialSharesObj[participant.userId] =
+                    participant.value ?? ""
+                )}
+                
             });
             setPercentages(initialPercentagesObj);
+            setShares(initialSharesObj);
+            console.log(initialSharesObj);
             
             console.log(response.data);
             
@@ -86,12 +108,28 @@ export default function ExpenseCompoent({isEdit}){
     function handleChange(e){
         const {id,name, value} = e.target;
         const key = name || id;
-        setExpenseData(prev=>({
-            ...prev,
+        const updatedExpenseData = {
+            ...expenseData,
             [key]: value
-        }))
-        if(key==="status"){
-            distributeEqually(expenseData.participants, expenseData.paidBy);
+        };
+        setExpenseData(updatedExpenseData)
+
+        if(key==="status" || key==="amount"){
+            const currentStatus = updatedExpenseData.status;
+            const currentAmount = Number(updatedExpenseData.amount || 0);
+
+            if (currentStatus === "PERCENTAGE") {
+                distributePercentageEqually(
+                    updatedExpenseData.participants,
+                    updatedExpenseData.paidBy
+                );
+            } else {
+                distributeAmountEqually(
+                    updatedExpenseData.participants,
+                    updatedExpenseData.paidBy,
+                    currentAmount
+                );
+            }
         }
         setErrors(prev =>({
             ...prev,
@@ -99,8 +137,8 @@ export default function ExpenseCompoent({isEdit}){
         }))
     }
 
-    function distributeEqually(participantIds, paidBy=""){
-        setLockedPercentages(new Set());
+    function distributePercentageEqually(participantIds, paidBy=""){
+        setLockedParticipants(new Set());
 
         const totalPercentage = 100;
         const count = participantIds.length;
@@ -124,12 +162,38 @@ export default function ExpenseCompoent({isEdit}){
         });
         setPercentages(updatedPercentages);
     }
+    function distributeAmountEqually(participantIds, paidBy="",amount){
+        setLockedParticipants(new Set());
+
+        const totalAmount = amount ?? expenseData.amount;
+        const count = participantIds.length;
+
+        if(count===0){
+            setShares({});
+            return ;
+        }
+
+        const equalShare = Math.floor((totalAmount/count)*100)/100;
+        const remainder = Number((totalAmount-(equalShare*count)).toFixed(2));
+
+        const updatedShares = {};
+
+        const remainderAddIndex = participantIds.includes(paidBy) 
+            ? participantIds.indexOf(paidBy) : 0;
+
+        participantIds.forEach((id, index)=>{
+            const share = equalShare + (index===remainderAddIndex ? remainder : 0);
+            updatedShares[id] = share.toFixed(2);
+        });
+        setShares(updatedShares);
+        console.log(updatedShares);
+    }
 
     function handlePercentageChange(id, inputValue){
         if(Number(inputValue)<0){
             return;
         }
-        const nextLocked = new Set(lockedPercentages);
+        const nextLocked = new Set(lockedParticipants);
         nextLocked.add(id);
         let lockedTotal = 0;
 
@@ -139,10 +203,6 @@ export default function ExpenseCompoent({isEdit}){
                 lockedTotal+=percentage;
             }
         }
-
-        // if(lockedTotal>100){
-        //     return;
-        // }
 
         const remainingParticipants = expenseData.participants.filter(participantId => !nextLocked.has(participantId));
         const remainingPercentage = Number((100-lockedTotal).toFixed(2));
@@ -162,8 +222,44 @@ export default function ExpenseCompoent({isEdit}){
             return updatedPercentages;
         });
 
-        setLockedPercentages(nextLocked);
+        setLockedParticipants(nextLocked);
 
+    }
+
+    function handleShareChange(id, inputValue){
+        if(Number(inputValue)<0){
+            return;
+        }
+        const nextLocked = new Set(lockedParticipants);
+        nextLocked.add(id);
+        let lockedTotal = 0;
+
+        for(const participantId of expenseData.participants){
+            if(nextLocked.has(participantId)){
+                const share = participantId===id ? Number(inputValue) || 0 : Number(shares[participantId]) || 0;
+                lockedTotal+=share;
+            }
+        }
+
+        const remainingParticipants = expenseData.participants.filter(participantId => !nextLocked.has(participantId));
+        const remainingShare = Number((expenseData.amount-lockedTotal).toFixed(2));
+        const equalShare = remainingParticipants.length>0 ? Math.floor((remainingShare/remainingParticipants.length)*100)/100 : 0;
+        const remainder = Number((remainingShare-equalShare*remainingParticipants.length).toFixed(2));
+
+        setShares(prev => {
+            const updatedShares ={
+                ...prev,
+                [id]: inputValue
+            };
+
+            remainingParticipants.forEach((participantId, index)=>{
+                const share = equalShare + (index===0 ? remainder : 0);
+                updatedShares[participantId] = share.toFixed(2)>0 ? share.toFixed(2) : 0;
+            })
+            return updatedShares;
+        });
+
+        setLockedParticipants(nextLocked);
     }
 
     async function handleSubmit(e){
@@ -184,7 +280,8 @@ export default function ExpenseCompoent({isEdit}){
                 status: expenseData.status,
                 participants: expenseData.participants.map(id => ({
                     id: id,
-                    percent: percentages[id] || 0
+                    percent: percentages[id] || 0,
+                    share: shares[id] || 0
                 }))
             }
             if(isEdit){
@@ -213,6 +310,9 @@ export default function ExpenseCompoent({isEdit}){
     }
     const totalPercentage = expenseData.participants.reduce(
         (total, id) => total + (Number(percentages[id]) || 0),0);
+    
+    const totalShare = expenseData.participants.reduce(
+        (total, id)=> total+ (Number(shares[id])||0),0);
 
     return(
         <div className="mb-4 mx-2 mx-md-4">
@@ -291,8 +391,8 @@ export default function ExpenseCompoent({isEdit}){
                                         participants: updatedParticipants
                                         
                                     }))
-                                
-                                    distributeEqually(updatedParticipants, value);
+                                    {expenseData.status==="PERCENTAGE" ? distributePercentageEqually(updatedParticipants, value) : distributeAmountEqually(updatedParticipants, value);}
+                                    
                                     setErrors(prev => ({
                                         ...prev,
                                         paidBy: ""
@@ -342,7 +442,8 @@ export default function ExpenseCompoent({isEdit}){
                                         ...prev,
                                         participants: values
                                     }))
-                                    distributeEqually(values, expenseData.paidBy)
+                                    {expenseData.status==="PERCENTAGE" ? distributePercentageEqually(values, expenseData.paidBy) : distributeAmountEqually(values, expenseData.paidBy);}
+                                    
 
                                     setErrors(prev =>({
                                         ...prev,
@@ -357,17 +458,24 @@ export default function ExpenseCompoent({isEdit}){
                             />
                         </div>
                         <div className="col-12 col-md-10  mt-4 mx-auto">
-                            {expenseData.status==="PERCENTAGE" && (
+                            {(expenseData.status==="PERCENTAGE" || expenseData.status==="EQUAL") && (
                                 <div className="table-responsive border rounded">
                                     <div className="d-flex justify-content-between align-items-center mx-2 mx-md-3">
                                         <div className="">
-                                            <p className="fs-4 fw-semibold mb-0">Percentage Split </p>
-                                            <p className="fs-6">Assign a percentage share to each participant.</p>
+                                            <p className="fs-4 fw-semibold mb-0">{expenseData.status==='PERCENTAGE' ? 'Percentage Split' : `Equal Split`}  </p>
+                                            <p className="fs-6">{expenseData.status==='PERCENTAGE' ? 'Assign a percentage share to each participant.' : 'Assign a share amount to each participant.'}</p>
                                         </div>
                                         <div className="">
                                             <Button 
                                                 type="button"
-                                                onClick={()=> distributeEqually(expenseData.participants, expenseData.paidBy)}> 
+                                                onClick={()=>{
+                                                    if(expenseData.status==="PERCENTAGE"){
+                                                        distributePercentageEqually(expenseData.participants, expenseData.paidBy)
+                                                    }
+                                                    else{
+                                                        distributeAmountEqually(expenseData.participants, expenseData.paidBy)
+                                                    }
+                                                }}> 
                                                 <div className="d-flex align-items-center gap-1">
                                                     <RotateCw size={20} className="text-muted mt-1"/> 
                                                     <span className="d-none d-md-block">Split Equally</span>
@@ -379,14 +487,22 @@ export default function ExpenseCompoent({isEdit}){
                                     
                                     <table className="table align-middle mb-0">
                                         <colgroup>
-                                                <col style={{width: "45%"}}/>
-                                                <col style={{width: "40%"}}/>
-                                                <col style={{width: "15%"}}/>
+                                                <col style={{width: "50%"}}/>
+                                                {expenseData.status==="PERCENTAGE" && (
+                                                    <col style={{width: "35%"}}/>
+                                                )}
+                                                {expenseData.status==="PERCENTAGE" ? (
+                                                    <col style={{width: "15%"}}/>
+                                                 ) : (<col style={{width: "50%"}}/>) }
+                                                
                                             </colgroup>
                                         <thead className="table-light">
                                             <tr>
                                                 <td className="fw-bold px-3">Name</td>
-                                                <td className="fw-bold">Percentage</td>
+                                                {expenseData.status==="PERCENTAGE" && (
+                                                    <td className="fw-bold">Percentage</td>
+                                                )}
+                                                
                                                 <td className="fw-bold">Amount</td>
                                             </tr>
                                         
@@ -401,7 +517,8 @@ export default function ExpenseCompoent({isEdit}){
                                                             {member?.name}
                                                         </td>
                                                         <td>
-                                                            <div className="d-flex">
+                                                            {expenseData.status==="PERCENTAGE" ? (
+                                                                <div className="d-flex">
                                                                 <Input 
                                                                     type="number"
                                                                     min="0"
@@ -412,14 +529,12 @@ export default function ExpenseCompoent({isEdit}){
                                                                     onChange={(e)=>{
                                                                         const value = e.target.value;
                                                                         if(value===""){
-                                                                            setPercentages(prev=>({
-                                                                                ...prev,
-                                                                                [id]:""
-                                                                            }));
+                                                                            handlePercentageChange(id,0);
                                                                             return;
+                                                                            
                                                                         }
                                                                         
-                                                                        if(Number(value)>100 ){
+                                                                        if (Number(value) > 100 || Number(value) < 0) {
                                                                             return;
                                                                         }
                                                                         
@@ -433,12 +548,41 @@ export default function ExpenseCompoent({isEdit}){
                                                                 />
                                                                 <span className="mt-2">%</span>
                                                             </div>
-                                                        </td>
-                                                        <td>
-                                                            <div>
-                                                                <span>{(expenseData.amount*(percentages[id]/100)).toFixed(2)}</span>
+                                                            ): (
+                                                                <div className="d-flex">
+                                                                <Input 
+                                                                    type="number"
+                                                                    min="0"
+                                                                    className="form-control"
+                                                                    step="0.01" 
+                                                                    value={shares[id] ?? ""}
+                                                                    onChange={(e)=>{
+                                                                        const value = e.target.value;
+                                                                        if(value===""){
+                                                                            handleShareChange(id, 0);
+                                                                            return;
+                                                                        }
+                                                                        handleShareChange(id, value);
+                                                                        setErrors(prev=>({
+                                                                            ...prev,
+                                                                            percentages:""
+                                                                        }))
+                                                                    }}
+                                                                    containerClassName="mb-0"
+                                                                />
+                                                                <span className="mt-2">rs</span>
                                                             </div>
+                                                            )}
+                                                            
                                                         </td>
+                                                        {expenseData.status ==="PERCENTAGE" && (
+                                                            <td>
+                                                                <div>
+                                                                    <span>{(expenseData.amount*(percentages[id]/100)).toFixed(2)}</span>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                        
                                                     </tr>
                                                 )
                                             })}
@@ -446,13 +590,25 @@ export default function ExpenseCompoent({isEdit}){
                                         <tfoot>
                                             <tr>
                                                 <td className="fw-semibold px-3">Total</td>
-                                                <td className={`${totalPercentage.toFixed(2)>100 ? "text-danger" : `${totalPercentage.toFixed(2)==="100.00" ? "text-success" : ""}`}  d-flex flex-column`}>
+                                                {expenseData.status==="PERCENTAGE" ? (
+                                                    <td className={`${totalPercentage.toFixed(2)>100 ? "text-danger" : `${totalPercentage.toFixed(2)==="100.00" ? "text-success" : ""}`}  d-flex flex-column`}>
                                                     <span className="fw-bold">{totalPercentage.toFixed(2)}</span>
                                                     {totalPercentage.toFixed(2)>100 && (
                                                         <span className="text-danger fw-semibold">Total percentage must not exceed 100%</span>
                                                     )}
                                                 </td>
-                                                <td> {(Number(expenseData.amount || 0) * (totalPercentage / 100)).toFixed(2)}</td>
+                                                ) : (
+                                                    <td className={`${totalShare.toFixed(2)>Number(expenseData?.amount ?? 0).toFixed(2) ? "text-danger" : `${totalShare.toFixed(2)===Number(expenseData?.amount ?? 0).toFixed(2) ? "text-success" : ""}`}  d-flex flex-column`}>
+                                                    <span className="fw-bold">{totalShare.toFixed(2)}</span>
+                                                    {Number(totalShare.toFixed(2))> Number(Number(expenseData?.amount ?? 0).toFixed(2)) && (
+                                                        <span className="text-danger fw-semibold">Total share must not exceed expense amount</span>
+                                                    )}
+                                                </td>
+                                                )}
+                                                {expenseData.status==="PERCENTAGE" && (
+                                                    <td> {(Number(expenseData.amount || 0) * (totalPercentage / 100)).toFixed(2)}</td>
+                                                )}
+                                                
                                             </tr>
                                         </tfoot>
                                     </table>
