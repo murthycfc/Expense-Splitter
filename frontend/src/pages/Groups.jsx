@@ -40,9 +40,7 @@ export default function Groups(){
 
     async function fetchGroups(groupName,page) {
         try {
-            if(groupName===""){
-                return;
-            }
+            
             setLoading(true)
             const data = await loadGroups(groupName, page);
             setGroups(prev => page===0 ? data.content : [...prev, ...data.content]);

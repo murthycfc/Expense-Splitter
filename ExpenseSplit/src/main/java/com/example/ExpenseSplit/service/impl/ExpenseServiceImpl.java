@@ -13,6 +13,8 @@ import com.example.ExpenseSplit.repo.*;
 import com.example.ExpenseSplit.security.SecurityUtils;
 import com.example.ExpenseSplit.service.api.ExpenseService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -41,72 +43,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
-            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
-                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't create expense"));
-
-            if(groupMember.isDeleted()){
-                throw new AccessDeniedException("You are no longer member in this group. So can't create expense");
-            }
+            validateRequest(group, request, currentUser);
 
             User paidByUser = userRepository.findByUserId(request.getPaidBy().toString()).orElseThrow(()->
                     new ResourceNotFoundException("User not found to add Paid by"));
-
-            GroupMember payerMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), paidByUser.getId().toString())
-                    .orElseThrow(()-> new BadRequestException("Payer is not member in this group"));
-            if(payerMember.isDeleted()){
-                throw new BadRequestException("Payer no longer member in this group");
-            }
-            if(request.getDate().isAfter(LocalDate.now())){
-                throw new BadRequestException("Can't create expense for future dates");
-            }
-
-            if(request.getParticipants()==null || request.getParticipants().isEmpty()){
-                throw new BadRequestException("At least one participant is required");
-            }
-            if(request.getParticipants().size()==1 && paidByUser.getId().equals(request.getParticipants().get(0).getId())){
-                throw new BadRequestException("The payer cannot be the only participant in an expense");
-            }
-
-            Set<UUID> uniqueParticipants = new HashSet<>();
-            for(ParticipantRequest participantRequest : request.getParticipants()){
-                if(!uniqueParticipants.add(participantRequest.getId())){
-                    throw new BadRequestException("Duplicate participants found");
-                }
-            }
-
-            Status status = request.getStatus();
-            BigDecimal totalPercent = BigDecimal.ZERO;
-
-            if(status == Status.PERCENTAGE){
-                for(ParticipantRequest participantRequest : request.getParticipants()){
-                    BigDecimal percent = participantRequest.getPercent();
-                    if(percent==null){
-                        throw new BadRequestException("Percentage is required for every participant");
-                    }
-                    if(percent.compareTo(BigDecimal.ZERO)<0){
-                        throw new BadRequestException("Percentage must be greater than or equal to 0");
-                    }
-                    if(percent.compareTo(BigDecimal.valueOf(100))>0){
-                        throw new BadRequestException("Percentage must be less than or equal to 100");
-                    }
-                    totalPercent=totalPercent.add(participantRequest.getPercent());
-                }
-
-                log.info("total percent {}", totalPercent);
-                if(totalPercent.compareTo(BigDecimal.valueOf(100))!=0){
-                    throw new BadRequestException("Individual percents not equal to 100");
-                }
-            }
 
             Map<UUID, User> participantUsers = new HashMap<>();
             for(ParticipantRequest participantRequest : request.getParticipants()){
                 User participant = userRepository.findByUserId(participantRequest.getId().toString()).orElseThrow(()->
                         new ResourceNotFoundException("User not found to add participant"));
-                GroupMember groupParticipant = groupMemberRepository.findByGroupAndUser(group.getId().toString(), participant.getId().toString())
-                        .orElseThrow(()-> new BadRequestException("Participant not found in this group"));
-                if(groupParticipant.isDeleted()){
-                    throw new BadRequestException("Participant no longer member in this group");
-                }
                 participantUsers.put(participant.getId(), participant);
             }
 
@@ -116,10 +61,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expense.setCreatedBy(currentUser);
             expense.setGroup(group);
 
-            BigDecimal amount = request.getAmount();
-            int participantSize = request.getParticipants().size();
             List<Participant> participants = new ArrayList<>();
-//            BigDecimal total = BigDecimal.ZERO;
 
             for(ParticipantRequest participantRequest : request.getParticipants()){
                 User participantUser = participantUsers.get(participantRequest.getId());
@@ -128,32 +70,15 @@ public class ExpenseServiceImpl implements ExpenseService {
                 participant.setUser(participantUser);
                 participant.setPercent(participantRequest.getPercent());
 
-                if(status==Status.PERCENTAGE){
-
-                    BigDecimal share = amount.multiply(participantRequest.getPercent()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                if(request.getStatus()==Status.PERCENTAGE){
+                    BigDecimal share = request.getAmount().multiply(participantRequest.getPercent()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
                     participant.setValue(share);
-//                    total = total.add(share);
                 }
                 else {
-//                    BigDecimal splitAmount = amount.divide(BigDecimal.valueOf(participantSize),2, RoundingMode.HALF_UP);
-                    BigDecimal splitAmount = participantRequest.getShare();
-                    participant.setValue(splitAmount);
-//                    total = total.add(splitAmount);
+                    participant.setValue(participantRequest.getShare());
                 }
                 participants.add(participant);
             }
-
-//            BigDecimal remainingAmount = amount.subtract(total);
-//            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
-//                Participant payer =  participants.stream().filter(p-> p.getUser().getId().equals(request.getPaidBy())).findFirst().orElse(null);
-//                if(payer!=null){
-//                    payer.setValue(payer.getValue().add(remainingAmount));
-//                }
-//                else {
-//                    Participant firstParticipant = participants.get(0);
-//                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
-//                }
-//            }
 
             expense.setParticipants(participants);
             Expense savedExpense = expenseRepository.save(expense);
@@ -163,6 +88,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             BeanUtils.copyProperties(savedExpense, response);
             response.setGroupId(savedExpense.getGroup().getId());
             response.setPaidBy(savedExpense.getPaidBy().getName());
+
             List<String> savedParticipants = new ArrayList<>();
             for(Participant participant : savedExpense.getParticipants()){
                 savedParticipants.add(participant.getUser().getName());
@@ -177,6 +103,98 @@ public class ExpenseServiceImpl implements ExpenseService {
         catch (Exception e) {
             log.error("An unexpected error occurred in AddExpense method {}", e.getMessage());
             throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    private void validateRequest(Group group, ExpenseRequest request, User currentUser) {
+        validateCurrentUserMembership(group, currentUser);
+        if(request.getDate().isAfter(LocalDate.now())){
+            throw new BadRequestException("Can't create expense for future dates");
+        }
+        validateParticipants(request);
+        validatePayer(group, request.getPaidBy());
+        validateParticipantMembership(group, request.getParticipants());
+        if (request.getStatus() == Status.PERCENTAGE) {
+            validatePercentage(request.getParticipants());
+        }
+    }
+
+    private void validatePercentage(@Valid List<ParticipantRequest> participants) {
+        BigDecimal totalPercent = BigDecimal.ZERO;
+
+        for (ParticipantRequest participant : participants) {
+
+            BigDecimal percent = participant.getPercent();
+            if (percent == null) {
+                throw new BadRequestException("Percentage is required for every participant");
+            }
+
+            if (percent.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BadRequestException("Percentage must be greater than or equal to 0");
+            }
+
+            if (percent.compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new BadRequestException("Percentage must be less than or equal to 100");
+            }
+            totalPercent = totalPercent.add(percent);
+        }
+
+        if (totalPercent.compareTo(BigDecimal.valueOf(100)) != 0) {
+            throw new BadRequestException("Individual percents not equal to 100");
+        }
+    }
+
+    private void validateParticipantMembership(Group group, @Valid List<ParticipantRequest> participants) {
+        for (ParticipantRequest participant : participants){
+            GroupMember groupParticipant = groupMemberRepository.findByGroupAndUser(group.getId().toString(),
+                    participant.getId().toString()).orElseThrow(() ->
+                    new BadRequestException("Participant not found in this group")
+            );
+
+            if (groupParticipant.isDeleted()) {
+                throw new BadRequestException(
+                        "Participant no longer member in this group"
+                );
+            }
+        }
+    }
+
+    private void validatePayer(Group group, @NotNull(message = "Payer is required") UUID paidBy) {
+        GroupMember payerMember = groupMemberRepository.findByGroupAndUser(
+                group.getId().toString(), paidBy.toString())
+                .orElseThrow(() ->
+                new BadRequestException("Payer is not member in this group"));
+
+        if(payerMember.isDeleted()) {
+            throw new BadRequestException("Payer no longer member in this group");
+        }
+    }
+
+    private void validateParticipants(ExpenseRequest request) {
+        List<ParticipantRequest> participants = request.getParticipants();
+        if (participants == null || participants.isEmpty()) {
+            throw new BadRequestException("At least one participant is required");
+        }
+        if (participants.size() == 1 &&
+                request.getPaidBy().equals(participants.get(0).getId())) {
+            throw new BadRequestException(
+                    "The payer cannot be the only participant in an expense"
+            );
+        }
+        Set<UUID> uniqueParticipants = new HashSet<>();
+        for (ParticipantRequest participant : participants) {
+            if (!uniqueParticipants.add(participant.getId())) {
+                throw new BadRequestException("Duplicate participants found");
+            }
+        }
+    }
+
+    private void validateCurrentUserMembership(Group group, User currentUser) {
+        GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
+                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't create expense"));
+
+        if(groupMember.isDeleted()){
+            throw new AccessDeniedException("You are no longer member in this group. So can't create expense");
         }
     }
 
@@ -279,80 +297,28 @@ public class ExpenseServiceImpl implements ExpenseService {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
 
-            Group group = expense.getGroup();
-
-            if(!expense.getCreatedBy().getId().equals(currentUser.getId()) && !expense.getPaidBy().getId().equals(currentUser.getId())){
-                throw new AccessDeniedException("You don't have access to edit this expense");
-            }
+            validateEditExpenseRequest(expense, request, currentUser);
 
             User paidByUser = userRepository.findByUserId(request.getPaidBy().toString()).orElseThrow(()->
                     new ResourceNotFoundException("User not found to add Paid by"));
 
-            GroupMember payerMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), paidByUser.getId().toString())
-                    .orElseThrow(()-> new BadRequestException("Payer is not member in this group"));
-            if(payerMember.isDeleted()){
-                throw new BadRequestException("Payer no longer member in this group");
-            }
-
-            if(request.getDate().isAfter(LocalDate.now())){
-                throw new BadRequestException("Can't update expense to future dates");
-            }
-            if(request.getParticipants()==null || request.getParticipants().isEmpty()){
-                throw new BadRequestException("At least one participant is required");
-            }
-            if(request.getParticipants().size()==1 && paidByUser.getId().equals(request.getParticipants().get(0).getId())){
-                throw new BadRequestException("The payer cannot be the only participant in an expense");
-            }
-
             List<ParticipantRequest> participantRequests = request.getParticipants();
-            Set<UUID> requestedUserIds = new HashSet<>();
-            for(ParticipantRequest participantRequest : participantRequests){
-                if(!requestedUserIds.add(participantRequest.getId())){
-                    throw new BadRequestException("Duplicate participants found");
-                }
-            }
+            Set<UUID> requestedUserIds = participantRequests.stream()
+                    .map(ParticipantRequest::getId)
+                    .collect(Collectors.toSet());
 
             Status status = request.getStatus();
-            BigDecimal totalPercent = BigDecimal.ZERO;
-            if(status == Status.PERCENTAGE){
-                for(ParticipantRequest participantRequest : participantRequests){
-                    BigDecimal percent = participantRequest.getPercent();
-                    if(percent==null){
-                        throw new BadRequestException("Percentage is required for every participant");
-                    }
-                    if(percent.compareTo(BigDecimal.ZERO)<0){
-                        throw new BadRequestException("Percentage must be greater than or equal to 0");
-                    }
-                    if(percent.compareTo(BigDecimal.valueOf(100))>0){
-                        throw new BadRequestException("Percentage must be less than or equal to 100");
-                    }
-                    totalPercent  = totalPercent.add(participantRequest.getPercent());
-                }
-
-                if(totalPercent.compareTo(BigDecimal.valueOf(100))!=0){
-                    throw new BadRequestException("Individual percents not equal to 100");
-                }
-            }
-
             Map<UUID, User> participantUsers = new HashMap<>();
             for(ParticipantRequest participantRequest : request.getParticipants()){
-
                 User participant = userRepository.findByUserId(participantRequest.getId().toString()).orElseThrow(()->
                         new ResourceNotFoundException("User not found to add participant"));
-                GroupMember groupParticipant = groupMemberRepository.findByGroupAndUser(group.getId().toString(), participant.getId().toString())
-                        .orElseThrow(()-> new BadRequestException("Participant not found in this group"));
-                if(groupParticipant.isDeleted()){
-                    throw new BadRequestException("Participant no longer member in this group");
-                }
                 participantUsers.put(participant.getId(), participant);
             }
-
 
             BeanUtils.copyProperties(request, expense);
             expense.setPaidBy(paidByUser);
 
             List<Participant> expenseParticipants = participantRepository.getExpenseParticipants(expense.getId().toString());
-            log.info("Number of existing participants: {}", expenseParticipants.size());
             for(Participant participant : expenseParticipants){
                 UUID existingUserId = participant.getUser().getId();
                 if(!requestedUserIds.contains(existingUserId)){
@@ -361,12 +327,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             BigDecimal amount = request.getAmount();
-            int participantSize = participantRequests.size();
-            BigDecimal equalsAmount = amount.divide(BigDecimal.valueOf(participantSize), 2, RoundingMode.HALF_UP);
-//            BigDecimal total = BigDecimal.ZERO;
             List<Participant> updatedParticipants = new ArrayList<>();
-
-
 
             for(ParticipantRequest participantRequest : participantRequests){
                 User participantUser = participantUsers.get(participantRequest.getId());
@@ -391,25 +352,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
                     participant.setValue(share);
                 }
-//                total = total.add(participant.getValue());
                 updatedParticipants.add(participant);
             }
-//            BigDecimal remainingAmount = amount.subtract(total);
-//            if(remainingAmount.compareTo(BigDecimal.ZERO)!=0){
-//                Participant payer = updatedParticipants.stream()
-//                        .filter(p -> p.getUser().getId().equals(paidByUser.getId()))
-//                        .findFirst()
-//                        .orElse(null);
-//                if(payer!=null){
-//                    payer.setValue(payer.getValue().add(remainingAmount));
-//                }
-//                else{
-//                    Participant firstParticipant = updatedParticipants.get(0);
-//                    firstParticipant.setValue(firstParticipant.getValue().add(remainingAmount));
-//                }
-//                participantRepository.saveAll(updatedParticipants);
-//            }
-
             Expense savedExpense = expenseRepository.save(expense);
             ExpenseResponse response = new ExpenseResponse();
             BeanUtils.copyProperties(savedExpense, response);
@@ -438,19 +382,26 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
     }
 
+    private void validateEditExpenseRequest( Expense expense, ExpenseRequest request, User currentUser) {
+        Group group = expense.getGroup();
+
+        if(!expense.getCreatedBy().getId().equals(currentUser.getId()) && !expense.getPaidBy().getId().equals(currentUser.getId())){
+            throw new AccessDeniedException("You don't have access to edit this expense");
+        }
+        validatePayer(group,request.getPaidBy());
+        if(request.getDate().isAfter(LocalDate.now())){
+            throw new BadRequestException("Can't update expense to future dates");
+        }
+        validateParticipants(request);
+        if (request.getStatus() == Status.PERCENTAGE) {
+            validatePercentage(request.getParticipants());
+        }
+    }
+
     @Override
     public BaseResponse deleteExpense(Expense expense) {
         try {
             User currentUser = SecurityUtils.getCurrentPrincipal().getUser();
-
-//            Group group = expense.getGroup();
-
-//            GroupMember groupMember = groupMemberRepository.findByGroupAndUser(group.getId().toString(), currentUser.getId().toString())
-//                    .orElseThrow(()-> new AccessDeniedException("You are not member in this group. So can't delete expense"));
-//
-//            if(groupMember.isDeleted()){
-//                throw new AccessDeniedException("You are no longer member in this group. So can't delete expense");
-//            }
 
             if(!expense.getCreatedBy().getId().equals(currentUser.getId())){
                 throw new AccessDeniedException("You don't have access to delete this expense");
